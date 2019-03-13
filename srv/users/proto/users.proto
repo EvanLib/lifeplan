@@ -1,5 +1,4 @@
 syntax = "proto3";
-
 package users;
 
 
@@ -13,10 +12,16 @@ service Users {
 }
 
 message User {
+    // @inject_tag: bson:"_id"
     string id = 1;
+    // @inject_tag: bson:"username"
     string username = 2;
+    // @inject_tag: bson:"email"
     string email = 3;
+    // @inject_tag: bson:"password"
     string password = 5;
+    // @inject_tag: bson:"token"
+    string token = 6;
 }
 
 // Empty Request
