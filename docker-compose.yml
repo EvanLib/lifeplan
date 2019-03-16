@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  users:
+    build: ./srv/users
+    depends_on: 
+      - lifeplan-mongo
+    environment:
+      MONGO_HOST: lifeplan-mongo
+      MONGO_DB: lifeplan_users
+      MONGO_USER: ""
+      MONGO_PASSWORD: ""
+
+  lifeplan-mongo:
+    image: 'mongo:latest'
+    container_name: 'lifeplan-mongo'
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+  microweb:
+    image: microhq/micro
+    command: web --address=0.0.0.0:8080
+    ports:
+      - "80:8080"
+    links:
+      - users
+ 
+
+
+
+  
+      
+
