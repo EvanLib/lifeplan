@@ -62,7 +62,7 @@ func (app *Application) initDatabase() {
 	db, err := database.NewDatabase(settings)
 
 	if err != nil {
-		log.Fatal("[USERS] Databased fail", err)
+		log.Fatal("[USERS] Databased fail ", err)
 	}
 
 	app.database = db

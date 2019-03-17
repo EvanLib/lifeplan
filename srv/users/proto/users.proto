@@ -20,7 +20,7 @@ message User {
     string email = 3;
     // @inject_tag: bson:"password"
     string password = 5;
-    // @inject_tag: bson:"token"
+    // @inject_tag: bson:"-"
     string token = 6;
 }
 

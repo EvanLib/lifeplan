@@ -5,8 +5,8 @@ import (
 )
 
 type Config struct {
-	MongoHost     string `envconfig:"MONGO_HOST" required:"true"`
-	MongoDatabase string `envconfig:"MONGO_DB" required:"true"`
+	MongoHost     string `envconfig:"MONGO_HOST" default:"localhost"`
+	MongoDatabase string `envconfig:"MONGO_DB" default:"lifeplan_users"`
 	MongoUser     string `envconfig:"MONGO_USER" default:""`
 	MongoPassword string `envconfig:"MONGO_PASSWORD" default:""`
 	Environment   string `envconfig:"ENVIRONMENT" default:"dev"`
