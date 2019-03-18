@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package calendar;
+
+service CalendarService {
+    rpc CreateCalendar(Calendar) returns (CalendarResponse);
+    rpc GetCalendar(FincByIdRequest) returns (CalendarResponse);
+    rpc RemoveCalendar(FincByIdRequest) returns (EmptyResponse);
+    rpc UpdateCalendar(Calendar) returns (CalendarResponse);
+}
+
+message EmptyResponse {}
+message Calendar {
+    // @inject_tag: bson:"_id"
+    string id = 1;
+    // @inject_tag: bson:"name"
+    string name = 2;
+    // @inject_tag: bson:"userid"
+    string userid = 3;
+}
+
+message CalendarResponse {
+    string status = 1;
+    Calendar calendar = 2;
+    string error = 3;
+}
+message FincByIdRequest {
+    string id = 1;
+}
