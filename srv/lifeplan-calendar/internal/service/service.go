@@ -11,6 +11,7 @@ import (
 
 const (
 	CollectionCalendar = "Lifeplan-Calendars"
+	CollectionEvents   = "Lifeplan-Events"
 	calErrorNotFound   = "calendar with specified data not found"
 )
 

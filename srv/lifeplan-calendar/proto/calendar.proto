@@ -2,14 +2,24 @@ syntax = "proto3";
 
 package calendar;
 
+import "google/protobuf/timestamp.proto";
+
+
 service CalendarService {
     rpc CreateCalendar(Calendar) returns (CalendarResponse);
     rpc GetCalendar(FincByIdRequest) returns (CalendarResponse);
     rpc RemoveCalendar(FincByIdRequest) returns (EmptyResponse);
     rpc UpdateCalendar(Calendar) returns (CalendarResponse);
+
+    rpc CreateEvent(Event) returns (EventResponse);
+    rpc GetEvent(FincByIdRequest) returns (EventResponse);
+    rpc UpdateEvent(Event) returns (EventResponse);
+    rpc RemoveEvent(FincByIdRequest) returns (EmptyResponse);
+    rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
 }
 
 message EmptyResponse {}
+
 message Calendar {
     // @inject_tag: bson:"_id"
     string id = 1;
@@ -26,4 +36,31 @@ message CalendarResponse {
 }
 message FincByIdRequest {
     string id = 1;
+}
+
+message EventRangeRequest {
+    google.protobuf.Timestamp start = 4;
+    google.protobuf.Timestamp end = 5;  
+}
+
+message EventRangeResponse {
+    repeated Event events = 1;
+}
+message EventResponse {
+    int32 status = 1;
+    string err = 2;
+    Event event = 3;
+}
+
+message Event {
+     // @inject_tag: bson:"_id"
+     string id = 1;
+     // @inject_tag: bson:"name"
+     string name = 2;
+     // @inject_tag: bson:"userid"
+     string userid = 3;
+     // @inject_tag: bson:"start"
+     google.protobuf.Timestamp start = 4;
+     // @inject_tag: bson:"end"
+     google.protobuf.Timestamp end = 5;  
 }

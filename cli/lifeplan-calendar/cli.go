@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	pb "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
+	timestamp "github.com/golang/protobuf/ptypes"
 	microclient "github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/cmd"
 )
@@ -54,5 +56,29 @@ func main() {
 		log.Printf("Could not remove calendar %v", err)
 	}
 	log.Printf("Removed calendar: %s", getCal.Id)
+
+	// events creation
+	start, _ := timestamp.TimestampProto(time.Now())
+	end, _ := timestamp.TimestampProto(time.Now().Add(time.Hour))
+	event, err := client.CreateEvent(context.TODO(), &pb.Event{
+		Name:  "Clean the car.",
+		Start: start,
+		End:   end,
+	})
+	if err != nil {
+		log.Printf("Could not create Event. %v", err)
+	}
+	log.Printf("Created event: %s", event.Event.Name)
+
+	event, err = client.GetEvent(context.TODO(), &pb.FincByIdRequest{Id: event.Event.Id})
+	if err != nil {
+		log.Printf("Could not get Event. %v", err)
+	}
+	log.Printf("Event GET %s", event.Event.Name)
+
+	startTime, _ := timestamp.Timestamp(event.Event.Start)
+	endtTime, _ := timestamp.Timestamp(event.Event.End)
+	log.Printf("Event start: %s event end %s:", startTime.String(), endtTime.String())
+
 	os.Exit(0)
 }

@@ -9,3 +9,6 @@ Microservices for a lifeplan application.
 * [ ] Implement OAUTH
 * [ ] JWT Expired Keys 
 * [ ] Create RSA keys on deployment
+
+## Lifeplan-calendar
+* [ ] Seperate Proto files
