@@ -3,7 +3,7 @@ syntax = "proto3";
 package calendar;
 
 import "google/protobuf/timestamp.proto";
-
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 service CalendarService {
     rpc CreateCalendar(Calendar) returns (CalendarResponse);
@@ -21,12 +21,9 @@ service CalendarService {
 message EmptyResponse {}
 
 message Calendar {
-    // @inject_tag: bson:"_id"
-    string id = 1;
-    // @inject_tag: bson:"name"
-    string name = 2;
-    // @inject_tag: bson:"userid"
-    string userid = 3;
+    string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+    string name = 2 [(gogoproto.moretags) = "bson:\"name\""];
+    string userid = 3 [(gogoproto.moretags) = "bson:\"userid\""];
 }
 
 message CalendarResponse {
@@ -53,14 +50,10 @@ message EventResponse {
 }
 
 message Event {
-     // @inject_tag: bson:"_id"
-     string id = 1;
-     // @inject_tag: bson:"name"
-     string name = 2;
-     // @inject_tag: bson:"userid"
-     string userid = 3;
-     // @inject_tag: bson:"start"
-     google.protobuf.Timestamp start = 4;
-     // @inject_tag: bson:"end"
-     google.protobuf.Timestamp end = 5;  
+     string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+     string name = 2 [(gogoproto.moretags) = "bson:\"name\""];
+     string userid = 3 [(gogoproto.moretags) = "bson:\"userid\""];
+     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
+     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];
+
 }

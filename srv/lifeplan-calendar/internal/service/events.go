@@ -5,7 +5,6 @@ import (
 	"log"
 
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
-	timestamp "github.com/golang/protobuf/ptypes"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -65,18 +64,16 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincById
 }
 
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
-	var events []*events.Event
-	start, err := timestamp.Timestamp(req.Start)
-	if err != nil {
-		return err
-	}
+	// var events []*events.Event
+	// start, err := timestamp.Timestamp(req.Start)
+	// if err != nil {
+	// 	return err
+	// }
 
-	end, err := timestamp.Timestamp(req.End)
-	if err != nil {
-		return err
-	}
-
-	query := bson.M{"start": {"$gte": start, "$lte": end}}
+	// end, err := timestamp.Timestamp(req.End)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
