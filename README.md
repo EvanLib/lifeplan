@@ -4,6 +4,7 @@ Microservices for a lifeplan application.
 # TODO
 ## Needs Improvement
 * [ ] Documentation
+* [ ] Mock Testing
 
 ## User/Auth Server
 * [ ] Implement OAUTH

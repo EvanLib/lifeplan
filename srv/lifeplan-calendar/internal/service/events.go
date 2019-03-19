@@ -64,16 +64,19 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincById
 }
 
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
-	// var events []*events.Event
-	// start, err := timestamp.Timestamp(req.Start)
-	// if err != nil {
-	// 	return err
-	// }
+	//find({"start": {$gte: ISODate(""), $lte: ISODate("")}})
+	var events []*events.Event
+	query := bson.M{
+		"start": bson.M{
+			"$gte": req.Start,
+			"$lte": req.End,
+		},
+	}
+	err := ev.db.Collection(CollectionEvents).Find(query).All(&events)
+	if err != nil {
+		return err
+	}
 
-	// end, err := timestamp.Timestamp(req.End)
-	// if err != nil {
-	// 	return err
-	// }
-
+	rsp.Events = events
 	return nil
 }
