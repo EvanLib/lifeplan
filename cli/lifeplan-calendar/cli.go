@@ -2,13 +2,33 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	pb "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	microclient "github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/cmd"
 )
+
+func createWeekOfEvents() []*pb.Event {
+	var events []*pb.Event
+	timenow := time.Now()
+
+	for i := 0; i <= 7; i++ {
+		name := fmt.Sprintf("Event %v", i)
+		start := timenow.Add(time.Duration(i) * (time.Hour * 24))
+		event := &pb.Event{
+			Name:  name,
+			Start: start,
+			End:   start.Add(time.Hour),
+		}
+		events = append(events, event)
+	}
+
+	return events
+}
 
 func main() {
 
@@ -54,5 +74,47 @@ func main() {
 		log.Printf("Could not remove calendar %v", err)
 	}
 	log.Printf("Removed calendar: %s", getCal.Id)
+
+	// events creation
+	start := time.Now()
+	end := time.Now().Add(time.Hour)
+	event, err := client.CreateEvent(context.TODO(), &pb.Event{
+		Name:  "Clean the car.",
+		Start: start,
+		End:   end,
+	})
+	if err != nil {
+		log.Printf("Could not create Event. %v", err)
+	}
+	log.Printf("Created event: %s", event.Event.Name)
+
+	eventrsp, err := client.GetEvent(context.TODO(), &pb.FincByIdRequest{Id: event.Event.Id})
+	if err != nil {
+		log.Printf("Could not get Event. %v", err)
+	}
+	log.Printf("Event GET %s", event.Event.Name)
+	log.Printf("Event start %s, Event end %s", eventrsp.Event.Start, eventrsp.Event.End)
+
+	events := createWeekOfEvents()
+	for _, event := range events {
+		rspevent, err := client.CreateEvent(context.TODO(), event)
+		if err != nil {
+			log.Printf("Could not create event: %v", err)
+		}
+		log.Printf("Created event: %s", rspevent.Event.Name)
+	}
+
+	// tomorrow events.
+	b := time.Now().AddDate(0, 0, 1)
+	e := time.Now().AddDate(0, 0, 2)
+	d := 24 * time.Hour
+	eventsrsp, err := client.GetEventsRange(context.TODO(), &pb.EventRangeRequest{
+		Start: b.Truncate(d),
+		End:   e.Truncate(d),
+	})
+	if err != nil {
+		log.Printf("Error getting tomorrow events: %v", err)
+	}
+	log.Print(eventsrsp.Events)
 	os.Exit(0)
 }

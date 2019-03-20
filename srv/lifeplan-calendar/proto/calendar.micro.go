@@ -12,12 +12,18 @@ It has these top-level messages:
 	Calendar
 	CalendarResponse
 	FincByIdRequest
+	EventRangeRequest
+	EventRangeResponse
+	EventResponse
+	Event
 */
 package calendar
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import _ "github.com/golang/protobuf/ptypes/timestamp"
+import _ "github.com/gogo/protobuf/gogoproto"
 
 import (
 	context "context"
@@ -48,6 +54,11 @@ type CalendarService interface {
 	GetCalendar(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*CalendarResponse, error)
 	RemoveCalendar(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error)
 	UpdateCalendar(ctx context.Context, in *Calendar, opts ...client.CallOption) (*CalendarResponse, error)
+	CreateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error)
+	GetEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventResponse, error)
+	UpdateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error)
+	RemoveEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error)
+	GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error)
 }
 
 type calendarService struct {
@@ -108,6 +119,56 @@ func (c *calendarService) UpdateCalendar(ctx context.Context, in *Calendar, opts
 	return out, nil
 }
 
+func (c *calendarService) CreateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.CreateEvent", in)
+	out := new(EventResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) GetEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.GetEvent", in)
+	out := new(EventResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) UpdateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.UpdateEvent", in)
+	out := new(EventResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) RemoveEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.RemoveEvent", in)
+	out := new(EmptyResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.GetEventsRange", in)
+	out := new(EventRangeResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for CalendarService service
 
 type CalendarServiceHandler interface {
@@ -115,6 +176,11 @@ type CalendarServiceHandler interface {
 	GetCalendar(context.Context, *FincByIdRequest, *CalendarResponse) error
 	RemoveCalendar(context.Context, *FincByIdRequest, *EmptyResponse) error
 	UpdateCalendar(context.Context, *Calendar, *CalendarResponse) error
+	CreateEvent(context.Context, *Event, *EventResponse) error
+	GetEvent(context.Context, *FincByIdRequest, *EventResponse) error
+	UpdateEvent(context.Context, *Event, *EventResponse) error
+	RemoveEvent(context.Context, *FincByIdRequest, *EmptyResponse) error
+	GetEventsRange(context.Context, *EventRangeRequest, *EventRangeResponse) error
 }
 
 func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler, opts ...server.HandlerOption) error {
@@ -123,6 +189,11 @@ func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler
 		GetCalendar(ctx context.Context, in *FincByIdRequest, out *CalendarResponse) error
 		RemoveCalendar(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error
 		UpdateCalendar(ctx context.Context, in *Calendar, out *CalendarResponse) error
+		CreateEvent(ctx context.Context, in *Event, out *EventResponse) error
+		GetEvent(ctx context.Context, in *FincByIdRequest, out *EventResponse) error
+		UpdateEvent(ctx context.Context, in *Event, out *EventResponse) error
+		RemoveEvent(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error
+		GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error
 	}
 	type CalendarService struct {
 		calendarService
@@ -149,4 +220,24 @@ func (h *calendarServiceHandler) RemoveCalendar(ctx context.Context, in *FincByI
 
 func (h *calendarServiceHandler) UpdateCalendar(ctx context.Context, in *Calendar, out *CalendarResponse) error {
 	return h.CalendarServiceHandler.UpdateCalendar(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) CreateEvent(ctx context.Context, in *Event, out *EventResponse) error {
+	return h.CalendarServiceHandler.CreateEvent(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) GetEvent(ctx context.Context, in *FincByIdRequest, out *EventResponse) error {
+	return h.CalendarServiceHandler.GetEvent(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) UpdateEvent(ctx context.Context, in *Event, out *EventResponse) error {
+	return h.CalendarServiceHandler.UpdateEvent(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) RemoveEvent(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error {
+	return h.CalendarServiceHandler.RemoveEvent(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error {
+	return h.CalendarServiceHandler.GetEventsRange(ctx, in, out)
 }

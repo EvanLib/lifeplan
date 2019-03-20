@@ -2,21 +2,28 @@ syntax = "proto3";
 
 package calendar;
 
+import "google/protobuf/timestamp.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
 service CalendarService {
     rpc CreateCalendar(Calendar) returns (CalendarResponse);
     rpc GetCalendar(FincByIdRequest) returns (CalendarResponse);
     rpc RemoveCalendar(FincByIdRequest) returns (EmptyResponse);
     rpc UpdateCalendar(Calendar) returns (CalendarResponse);
+
+    rpc CreateEvent(Event) returns (EventResponse);
+    rpc GetEvent(FincByIdRequest) returns (EventResponse);
+    rpc UpdateEvent(Event) returns (EventResponse);
+    rpc RemoveEvent(FincByIdRequest) returns (EmptyResponse);
+    rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
 }
 
 message EmptyResponse {}
+
 message Calendar {
-    // @inject_tag: bson:"_id"
-    string id = 1;
-    // @inject_tag: bson:"name"
-    string name = 2;
-    // @inject_tag: bson:"userid"
-    string userid = 3;
+    string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+    string name = 2 [(gogoproto.moretags) = "bson:\"name\""];
+    string userid = 3 [(gogoproto.moretags) = "bson:\"userid\""];
 }
 
 message CalendarResponse {
@@ -26,4 +33,26 @@ message CalendarResponse {
 }
 message FincByIdRequest {
     string id = 1;
+}
+
+message EventRangeRequest {
+    google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
+    google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];  
+}
+
+message EventRangeResponse {
+    repeated Event events = 1;
+}
+message EventResponse {
+    int32 status = 1;
+    string err = 2;
+    Event event = 3;
+}
+
+message Event {
+     string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+     string name = 2 [(gogoproto.moretags) = "bson:\"name\""];
+     string userid = 3 [(gogoproto.moretags) = "bson:\"userid\""];
+     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
+     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];
 }
