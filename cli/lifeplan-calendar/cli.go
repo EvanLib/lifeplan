@@ -10,17 +10,22 @@ import (
 	pb "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	microclient "github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/cmd"
+	rrule "github.com/teambition/rrule-go"
 )
+
+type calclient struct {
+	client *pb.CalendarService
+}
 
 func createWeekOfEvents() []*pb.Event {
 	var events []*pb.Event
-	timenow := time.Now()
+	timenow := time.Now().AddDate(0, 0, 5)
 
 	for i := 0; i <= 7; i++ {
 		name := fmt.Sprintf("Event %v", i)
 		start := timenow.Add(time.Duration(i) * (time.Hour * 24))
 		event := &pb.Event{
-			Name:  name,
+			Title: name,
 			Start: start,
 			End:   start.Add(time.Hour),
 		}
@@ -76,24 +81,49 @@ func main() {
 	log.Printf("Removed calendar: %s", getCal.Id)
 
 	// events creation
-	start := time.Now()
-	end := time.Now().Add(time.Hour)
+	start := time.Now().AddDate(0, 0, 2)
+	end := start.Add(time.Hour)
+	dur := end.Sub(start)
+	fmt.Println(dur)
 	event, err := client.CreateEvent(context.TODO(), &pb.Event{
-		Name:  "Clean the car.",
-		Start: start,
-		End:   end,
+		Title:    "Clean the car. This one",
+		Start:    start,
+		End:      end,
+		Duration: dur,
 	})
 	if err != nil {
 		log.Printf("Could not create Event. %v", err)
 	}
-	log.Printf("Created event: %s", event.Event.Name)
+	log.Printf("Created event: %s", event.Event.Title)
 
 	eventrsp, err := client.GetEvent(context.TODO(), &pb.FincByIdRequest{Id: event.Event.Id})
 	if err != nil {
 		log.Printf("Could not get Event. %v", err)
 	}
-	log.Printf("Event GET %s", event.Event.Name)
+	log.Printf("Event GET %s", event.Event.Title)
 	log.Printf("Event start %s, Event end %s", eventrsp.Event.Start, eventrsp.Event.End)
+
+	// recurrance events
+	r, _ := rrule.NewRRule(rrule.ROption{
+		Freq:    rrule.DAILY,
+		Count:   10,
+		Dtstart: time.Now(),
+	})
+	event, err = client.CreateEvent(context.TODO(), &pb.Event{
+		Title:     "Some habit",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Recurring: true,
+		Rrule:     r.String(),
+	})
+
+	log.Print(r.String())
+	eventrsp, err = client.GetEvent(context.TODO(), &pb.FincByIdRequest{Id: event.Event.Id})
+	if err != nil {
+		log.Printf("Could not get Event. %v", err)
+	}
+	log.Printf("Retrieved recurrence string %s", eventrsp.Event.Rrule)
 
 	events := createWeekOfEvents()
 	for _, event := range events {
@@ -101,13 +131,14 @@ func main() {
 		if err != nil {
 			log.Printf("Could not create event: %v", err)
 		}
-		log.Printf("Created event: %s", rspevent.Event.Name)
+		log.Printf("Created event: %s", rspevent.Event.Title)
 	}
 
 	// tomorrow events.
-	b := time.Now().AddDate(0, 0, 1)
-	e := time.Now().AddDate(0, 0, 2)
+	b := time.Now().AddDate(0, 0, 2)
+	e := time.Now().AddDate(0, 0, 4)
 	d := 24 * time.Hour
+	log.Printf("Retrieving date range start: %s and end %s", b, e)
 	eventsrsp, err := client.GetEventsRange(context.TODO(), &pb.EventRangeRequest{
 		Start: b.Truncate(d),
 		End:   e.Truncate(d),
@@ -115,6 +146,8 @@ func main() {
 	if err != nil {
 		log.Printf("Error getting tomorrow events: %v", err)
 	}
-	log.Print(eventsrsp.Events)
+	for _, e := range eventsrsp.Events {
+		log.Printf("Title: %s, RR: %v \n", e.Title, e.Recurring)
+	}
 	os.Exit(0)
 }

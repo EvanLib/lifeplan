@@ -7,6 +7,8 @@ github.com/Azure/go-autorest v10.7.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSW
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/DataDog/datadog-go v0.0.0-20190315133836-a5d50a065561 h1:Syyc6fQ+rC+I0A41d8OZYsQitmQRIPFBJxE2eAfOKHs=
 github.com/DataDog/datadog-go v0.0.0-20190315133836-a5d50a065561/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
+github.com/JulienBreux/rrule v0.0.0-20170222171609-0e86efa9e1c1 h1:NOUk/Yr5+GLpLTF1wH36lNP50Hu9PL3LLxNPSsF5Hks=
+github.com/JulienBreux/rrule v0.0.0-20170222171609-0e86efa9e1c1/go.mod h1:IpqnY3jwpQEfLwKrIZee0V5WeDvLm7hW6aiGOtFFtUE=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
 github.com/NYTimes/gziphandler v1.1.1/go.mod h1:n/CVRwUEOgIxrgPvAQhUUr9oeUtvrhMomdKFjzJNB0c=
 github.com/Sirupsen/logrus v1.0.6 h1:HCAGQRk48dRVPA5Y+Yh0qdCSTzPOyU1tBJ7Q9YzotII=
@@ -292,6 +294,8 @@ github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/teambition/rrule-go v1.3.0 h1:q/aqpLr7e9o3HQShZGwARryCBVKz7qu0KRyQyPHXkgY=
+github.com/teambition/rrule-go v1.3.0/go.mod h1:VRA+qwyK0TAPzamcF20cLogRQsOVDCgPIcHxn8Nvbr8=
 github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 h1:/Bsw4C+DEdqPjt8vAqaC9LAqpAQnaCQQqmolqq3S1T4=
 github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9/go.mod h1:RHkNRtSLfOK7qBTHaeSX1D6BNpI3qw7NTxsmNr4RvN8=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 h1:G3dpKMzFDjgEh2q1Z7zUUtKa8ViPtH+ocF0bE0g00O8=

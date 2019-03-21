@@ -2,6 +2,7 @@ module github.com/evanlib/lifeplan
 
 require (
 	github.com/DataDog/datadog-go v0.0.0-20190315133836-a5d50a065561 // indirect
+	github.com/JulienBreux/rrule v0.0.0-20170222171609-0e86efa9e1c1
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/circonus-labs/circonus-gometrics v2.2.6+incompatible // indirect
@@ -46,6 +47,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shirou/gopsutil v2.18.12+incompatible // indirect
+	github.com/teambition/rrule-go v1.3.0
 	github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 // indirect
 	golang.org/x/crypto v0.0.0-20190313024323-a1f597ede03a // indirect
 	golang.org/x/net v0.0.0-20190313220215-9f648a60d977

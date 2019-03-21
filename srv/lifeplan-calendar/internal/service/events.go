@@ -5,23 +5,40 @@ import (
 	"log"
 
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
-
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
+	rrule "github.com/teambition/rrule-go"
 )
 
 func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
 	// TODO: grabs the id from context..
+
+	if req.Recurring {
+		// create rule from string
+		r, err := rrule.StrToRRule(req.Rrule)
+		if err != nil {
+			return err
+		}
+		lastDate := len(r.All())
+		dates := r.All()
+		req.End = dates[lastDate-1]
+	}
 	event := &events.Event{
-		Id:     bson.NewObjectId().Hex(),
-		Name:   req.Name,
-		Userid: "1",
-		Start:  req.Start,
-		End:    req.End,
+		Id:        bson.NewObjectId().Hex(),
+		Title:     req.Title,
+		Userid:    "1",
+		Start:     req.Start,
+		End:       req.End,
+		Duration:  req.Duration,
+		Recurring: req.Recurring,
+		Allday:    req.Allday,
+		Rrule:     req.Rrule,
 	}
 	err := ev.db.Collection(CollectionEvents).Insert(event)
 	if err != nil {
 		return err
 	}
+
+	// rrule https://tools.ietf.org/html/rfc5545#section-3.8.5.3
 
 	rsp.Event = event
 	return nil
@@ -64,12 +81,17 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincById
 }
 
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
-	//find({"start": {$gte: ISODate(""), $lte: ISODate("")}})
+
+	// check if the request event is in the recurring event bounds
 	var events []*events.Event
 	query := bson.M{
-		"start": bson.M{
-			"$gte": req.Start,
-			"$lte": req.End,
+		"$or": []bson.M{
+			// starts in range
+			bson.M{"start": bson.M{"$gte": req.Start, "$lte": req.End}},
+			// ends in range
+			bson.M{"end": bson.M{"$gte": req.Start, "$lte": req.End}},
+			// spans range
+			bson.M{"start": bson.M{"$lte": req.Start}, "end": bson.M{"$gte": req.End}},
 		},
 	}
 	err := ev.db.Collection(CollectionEvents).Find(query).All(&events)
