@@ -18,10 +18,10 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		if err != nil {
 			return err
 		}
-		lastDate := len(r.All())
 		dates := r.All()
-		req.End = dates[lastDate-1]
+		req.End = dates[len(r.All())-1]
 	}
+
 	event := &events.Event{
 		Id:        bson.NewObjectId().Hex(),
 		Title:     req.Title,
