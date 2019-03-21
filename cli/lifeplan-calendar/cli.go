@@ -13,10 +13,6 @@ import (
 	rrule "github.com/teambition/rrule-go"
 )
 
-type calclient struct {
-	client *pb.CalendarService
-}
-
 func createWeekOfEvents() []*pb.Event {
 	var events []*pb.Event
 	timenow := time.Now().AddDate(0, 0, 5)
@@ -91,6 +87,7 @@ func main() {
 		End:      end,
 		Duration: dur,
 	})
+
 	if err != nil {
 		log.Printf("Could not create Event. %v", err)
 	}
@@ -147,7 +144,7 @@ func main() {
 		log.Printf("Error getting tomorrow events: %v", err)
 	}
 	for _, e := range eventsrsp.Events {
-		log.Printf("Title: %s, RR: %v \n", e.Title, e.Recurring)
+		log.Printf("Title: %s, RR: %v \n", e.Title, e.Recurring, e.Start)
 	}
 	os.Exit(0)
 }

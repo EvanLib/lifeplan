@@ -11,7 +11,8 @@ import (
 
 func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
 	// TODO: grabs the id from context..
-
+	// You must be able to distinguish between the recurrence pattern end date
+	// and the end date of each event instance to enable practical querying
 	if req.Recurring {
 		// create rule from string
 		r, err := rrule.StrToRRule(req.Rrule)
@@ -83,7 +84,7 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincById
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
 
 	// check if the request event is in the recurring event bounds
-	var events []*events.Event
+	var responseevents []*events.Event
 	query := bson.M{
 		"$or": []bson.M{
 			// starts in range
@@ -94,11 +95,30 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 			bson.M{"start": bson.M{"$lte": req.Start}, "end": bson.M{"$gte": req.End}},
 		},
 	}
-	err := ev.db.Collection(CollectionEvents).Find(query).All(&events)
+	err := ev.db.Collection(CollectionEvents).Find(query).All(&responseevents)
 	if err != nil {
 		return err
 	}
 
-	rsp.Events = events
+	// loop through events
+	for _, event := range responseevents {
+		if event.Recurring && event.Rrule != "" {
+			r, err := rrule.StrToRRule(event.Rrule)
+			if err != nil {
+				return err
+			}
+			times := r.Between(req.Start, req.End, true)
+			for _, time := range times {
+				newEnd := time.Add(event.Duration)
+				eventcp := &events.Event{}
+				*eventcp = *event
+				event.Start = time
+				event.End = newEnd
+				responseevents = append(responseevents, eventcp)
+			}
+		}
+	}
+
+	rsp.Events = responseevents
 	return nil
 }
