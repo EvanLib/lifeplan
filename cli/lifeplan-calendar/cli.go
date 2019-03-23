@@ -34,7 +34,6 @@ func createWeekOfEvents() []*pb.Event {
 func main() {
 
 	cmd.Init()
-
 	// create new user client
 	client := pb.NewCalendarService("go.micro.src.lifeplan-calendar", microclient.DefaultClient)
 
@@ -122,15 +121,6 @@ func main() {
 	}
 	log.Printf("Retrieved recurrence string %s", eventrsp.Event.Rrule)
 
-	events := createWeekOfEvents()
-	for _, event := range events {
-		rspevent, err := client.CreateEvent(context.TODO(), event)
-		if err != nil {
-			log.Printf("Could not create event: %v", err)
-		}
-		log.Printf("Created event: %s", rspevent.Event.Title)
-	}
-
 	// tomorrow events.
 	b := time.Now().AddDate(0, 0, 2)
 	e := time.Now().AddDate(0, 0, 4)
@@ -144,7 +134,7 @@ func main() {
 		log.Printf("Error getting tomorrow events: %v", err)
 	}
 	for _, e := range eventsrsp.Events {
-		log.Printf("Title: %s, RR: %v \n", e.Title, e.Recurring, e.Start)
+		log.Printf("Title: %s, RR: %v  Stime: %v Etime: %v\n", e.Title, e.Recurring, e.Start, e.End)
 	}
 	os.Exit(0)
 }

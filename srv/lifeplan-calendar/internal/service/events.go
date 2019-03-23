@@ -101,7 +101,7 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 	}
 
 	// loop through events
-	for _, event := range responseevents {
+	for i, event := range responseevents {
 		if event.Recurring && event.Rrule != "" {
 			r, err := rrule.StrToRRule(event.Rrule)
 			if err != nil {
@@ -112,13 +112,15 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 				newEnd := time.Add(event.Duration)
 				eventcp := &events.Event{}
 				*eventcp = *event
-				event.Start = time
-				event.End = newEnd
+				eventcp.Start = time
+				eventcp.End = newEnd
+				eventcp.Recurring = false
 				responseevents = append(responseevents, eventcp)
 			}
+			// remove the original event
+			responseevents = append(responseevents[:i], responseevents[i+1:]...)
 		}
 	}
-
 	rsp.Events = responseevents
 	return nil
 }
