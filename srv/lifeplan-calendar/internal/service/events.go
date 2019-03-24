@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"time"
 
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/globalsign/mgo/bson"
@@ -11,6 +12,9 @@ import (
 
 func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
 	// TODO: grabs the id from context..
+	// duration
+	duration := req.End.Sub(req.Start)
+
 	// You must be able to distinguish between the recurrence pattern end date
 	// and the end date of each event instance to enable practical querying
 	if req.Recurring {
@@ -29,7 +33,7 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		Userid:    "1",
 		Start:     req.Start,
 		End:       req.End,
-		Duration:  req.Duration,
+		Duration:  duration,
 		Recurring: req.Recurring,
 		Allday:    req.Allday,
 		Rrule:     req.Rrule,
@@ -46,15 +50,40 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 }
 
 func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
-	err := ev.db.Collection(CollectionEvents).UpdateId(req.Id, req)
+	var event *events.Event
+	err := ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
 	if err != nil {
+		log.Printf("Error on geting Event %v", err)
 		return err
 	}
 
-	var event *events.Event
-	err = ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
+	// if RRule change
+	if event.Recurring && event.Rrule != "" && event.Rrule != req.Rrule {
+		// find last occurance up to today().
+		r, err := rrule.StrToRRule(event.Rrule)
+		if err != nil {
+			return err
+		}
+		rangedEvents := r.Between(req.Start, time.Now(), true)
+		lastOccured := rangedEvents[len(rangedEvents)+1]
+		r.Until(lastOccured)
+		event.End = lastOccured
+
+		// set old event end to last occurance
+		err = ev.db.Collection(CollectionEvents).UpdateId(req.Id, &event)
+		if err != nil {
+			return err
+		}
+		if err != nil {
+			return err
+		}
+
+		// create new event with new rules
+		ev.CreateEvent(ctx, req, rsp)
+	}
+	// update regular event
+	err = ev.db.Collection(CollectionEvents).UpdateId(req.Id, req)
 	if err != nil {
-		log.Printf("Error on geting Event %v", err)
 		return err
 	}
 	rsp.Event = event
