@@ -142,11 +142,15 @@ func main() {
 		log.Printf("Error in updating event %v", err)
 	}
 
+	// Test title
 	eventrsp.Event.Title = "UPDATE TITLE :D"
 	eventUpdate, err := client.UpdateEvent(context.TODO(), eventrsp.Event)
 	if err != nil {
 		log.Printf("Error on updating event %v", err)
 	}
 	log.Printf("Updated recurrence event %s", eventUpdate.Event.Title)
+
+	// Test rrule stuff
+	
 	os.Exit(0)
 }

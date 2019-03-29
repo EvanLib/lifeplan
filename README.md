@@ -13,5 +13,6 @@ Microservices for a lifeplan application.
 * [ ] Create RSA keys on deployment
 
 ## Lifeplan-calendar
+* [ ] Event exception dates
 * [ ] Seperate Proto files
 * [ ] Write Testes for events/recurring events
