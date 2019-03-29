@@ -57,7 +57,8 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.Event, r
 		return err
 	}
 
-	// if RRule change
+	// handle RRULE change
+	// if start/end changes the client should update the RRULE
 	if event.Recurring && event.Rrule != "" && event.Rrule != req.Rrule {
 		// find last occurance up to today().
 		r, err := rrule.StrToRRule(event.Rrule)
@@ -86,7 +87,10 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.Event, r
 	if err != nil {
 		return err
 	}
-	rsp.Event = event
+	reqid := &events.FincByIdRequest{
+		Id: req.Id,
+	}
+	ev.GetEvent(ctx, reqid, rsp)
 	return nil
 }
 
