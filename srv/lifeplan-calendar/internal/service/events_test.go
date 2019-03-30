@@ -97,8 +97,8 @@ func (suite *EventsTestSuite) TestRangeEvents() {
 
 	req := &events.Event{
 		Title:     "Some habit",
-		Start:     start.Truncate(12 * time.Hour),
-		End:       end.Truncate(13 * time.Hour),
+		Start:     start,
+		End:       end,
 		Duration:  dur,
 		Allday:    false,
 		Recurring: true,
@@ -124,4 +124,57 @@ func (suite *EventsTestSuite) TestRangeEvents() {
 	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 10, len(rangeRsp.Events))
+}
+
+func (suite *EventsTestSuite) TestExRrule() {
+	// start time timenow + 1 hour
+	now := time.Now()
+	start := time.Date(2019, 12, 1, 12, 0, 0, 0, now.Location())
+	end := time.Date(2019, 12, 1, 13, 0, 0, 0, now.Location())
+	dur := end.Sub(start)
+
+	// create an rrule
+	set := rrule.Set{}
+	r, _ := rrule.NewRRule(rrule.ROption{
+		Freq:    rrule.DAILY,
+		Count:   7,
+		Dtstart: start,
+	})
+	set.RRule(r)
+
+	exr, _ := rrule.NewRRule(rrule.ROption{
+		Freq:      rrule.YEARLY,
+		Byweekday: []rrule.Weekday{rrule.SA, rrule.SU},
+		Dtstart:   start,
+	})
+	set.ExRule(exr)
+
+	req := &events.Event{
+		Title:     "Some habit",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Allday:    false,
+		Recurring: true,
+		Rrule:     r.String(),
+		Exrule:    exr.String(),
+	}
+
+	rsp := &events.EventResponse{}
+	err := suite.service.CreateEvent(context.TODO(), req, rsp)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), rsp.Event)
+	assert.Equal(suite.T(), req.Start, rsp.Event.Start)
+
+	// get range
+	endRange := start.AddDate(0, 0, 7)
+	rangeReq := &events.EventRangeRequest{
+		Start: start,
+		End:   endRange,
+	}
+	rangeRsp := &events.EventRangeResponse{}
+
+	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 5, len(rangeRsp.Events))
 }

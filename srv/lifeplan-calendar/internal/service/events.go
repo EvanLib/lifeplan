@@ -138,11 +138,26 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 	// loop through events
 	for i, event := range responseevents {
 		if event.Recurring && event.Rrule != "" {
+			set := rrule.Set{}
 			r, err := rrule.StrToRRule(event.Rrule)
 			if err != nil {
 				return err
 			}
-			times := r.Between(req.Start, req.End, true)
+			set.RRule(r)
+			if event.Exrule != "" {
+				exr, err := rrule.StrToRRule(event.Exrule)
+				if err != nil {
+					return err
+				}
+				set.ExRule(exr)
+			}
+
+			if len(event.Exdates) > 0 {
+				for _, time := range event.Exdates {
+					set.ExDate(time)
+				}
+			}
+			times := set.Between(req.Start, req.End, true)
 			for _, time := range times {
 				newEnd := time.Add(event.Duration)
 				eventcp := &events.Event{}
