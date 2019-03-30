@@ -37,6 +37,8 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		Recurring: req.Recurring,
 		Allday:    req.Allday,
 		Rrule:     req.Rrule,
+		Exrule:    req.Exrule,
+		Exdates:   req.Exdates,
 	}
 	err := ev.db.Collection(CollectionEvents).Insert(event)
 	if err != nil {
