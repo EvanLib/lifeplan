@@ -59,7 +59,7 @@ type CalendarService interface {
 	CreateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error)
 	GetEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventResponse, error)
 	UpdateEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EventResponse, error)
-	RemoveEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error)
+	RemoveEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EmptyResponse, error)
 	GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error)
 }
 
@@ -151,7 +151,7 @@ func (c *calendarService) UpdateEvent(ctx context.Context, in *EventUpdateReques
 	return out, nil
 }
 
-func (c *calendarService) RemoveEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error) {
+func (c *calendarService) RemoveEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EmptyResponse, error) {
 	req := c.c.NewRequest(c.name, "CalendarService.RemoveEvent", in)
 	out := new(EmptyResponse)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -181,7 +181,7 @@ type CalendarServiceHandler interface {
 	CreateEvent(context.Context, *Event, *EventResponse) error
 	GetEvent(context.Context, *FincByIdRequest, *EventResponse) error
 	UpdateEvent(context.Context, *EventUpdateRequest, *EventResponse) error
-	RemoveEvent(context.Context, *FincByIdRequest, *EmptyResponse) error
+	RemoveEvent(context.Context, *EventUpdateRequest, *EmptyResponse) error
 	GetEventsRange(context.Context, *EventRangeRequest, *EventRangeResponse) error
 }
 
@@ -194,7 +194,7 @@ func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler
 		CreateEvent(ctx context.Context, in *Event, out *EventResponse) error
 		GetEvent(ctx context.Context, in *FincByIdRequest, out *EventResponse) error
 		UpdateEvent(ctx context.Context, in *EventUpdateRequest, out *EventResponse) error
-		RemoveEvent(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error
+		RemoveEvent(ctx context.Context, in *EventUpdateRequest, out *EmptyResponse) error
 		GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error
 	}
 	type CalendarService struct {
@@ -236,7 +236,7 @@ func (h *calendarServiceHandler) UpdateEvent(ctx context.Context, in *EventUpdat
 	return h.CalendarServiceHandler.UpdateEvent(ctx, in, out)
 }
 
-func (h *calendarServiceHandler) RemoveEvent(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error {
+func (h *calendarServiceHandler) RemoveEvent(ctx context.Context, in *EventUpdateRequest, out *EmptyResponse) error {
 	return h.CalendarServiceHandler.RemoveEvent(ctx, in, out)
 }
 

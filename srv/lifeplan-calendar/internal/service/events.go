@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 	"time"
 
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
@@ -53,16 +52,13 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 
 // UpdateEvent updates a event in data store from events request.
 // There are three possibilities when it comes to updating.
-// Updating all instances of an event
-// Update only future event instances while keeping past instances
+// Updating all instances of an event.
+// Update only future event instances while keeping past instances.
 // Update only a single selected instance.
-// Single selected update add exception date
-// Create new event
 func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpdateRequest, rsp *events.EventResponse) error {
 	var event *events.Event
 	err := ev.db.Collection(CollectionEvents).FindId(req.Event.Id).One(&event)
 	if err != nil {
-		log.Printf("Error on geting Event %v", err)
 		return err
 	}
 
@@ -140,19 +136,72 @@ func (ev *CalendarService) GetEvent(ctx context.Context, req *events.FincByIdReq
 	var event *events.Event
 	err := ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
 	if err != nil {
-		log.Printf("Error on geting Event %v", err)
 		return err
 	}
 	rsp.Event = event
 	return nil
 }
 
-func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincByIdRequest, rsp *events.EmptyResponse) error {
-	//TODO: check if the userid owns the event9 first
-	err := ev.db.Collection(CollectionEvents).RemoveId(req.Id)
+// RemoveEvent deletes an event in data store based on event request.
+// There are three possibilities when it comes to deleting.
+// Removing all instances of an event
+// Removing only future event instances while keeping past instances.
+// Removing only a single selected instance.
+func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.EventUpdateRequest, rsp *events.EmptyResponse) error {
+	var event *events.Event
+	err := ev.db.Collection(CollectionEvents).FindId(req.Event.Id).One(&event)
 	if err != nil {
 		return err
 	}
+
+	switch req.Updatetype {
+	case events.SingleInstance:
+		// add exception date to recurring event
+		exception := time.Date(req.Event.Start.Year(), req.Event.Start.Month(), req.Event.Start.Day(), event.Start.Hour(), event.Start.Minute(), event.Start.Second(), 0, time.UTC)
+		event.Exdates = append(event.Exdates, exception)
+		err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
+		if err != nil {
+			return err
+		}
+		// create new event based on requirments.
+		req.Event.Recurring = false
+		req.Event.Rrule = ""
+		break
+	case events.AllInstances:
+		if event.Recurring && event.Rrule != "" {
+			err = ev.db.Collection(CollectionEvents).RemoveId(event.Id)
+			if err != nil {
+				return err
+			}
+		}
+		break
+	case events.FutureInstance:
+		if event.Recurring && event.Rrule != "" {
+			// find last occurance up to today().
+			r, err := rrule.StrToRRule(event.Rrule)
+			if err != nil {
+				return err
+			}
+			rangedEvents := r.Between(event.Start, req.Event.Start, true)
+			lastOccurnace := rangedEvents[len(rangedEvents)-2]
+			r.OrigOptions.Until = lastOccurnace.Add(event.Duration)
+			event.End = lastOccurnace.Add(event.Duration)
+			event.Rrule = r.String()
+			// set old event end to last occurance
+			err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
+			if err != nil {
+				return err
+			}
+			break
+		}
+		break
+	default:
+		err = ev.db.Collection(CollectionEvents).RemoveId(event.Id)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

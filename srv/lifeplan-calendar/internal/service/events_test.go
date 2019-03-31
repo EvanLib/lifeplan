@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -351,32 +352,14 @@ func (suite *EventsTestSuite) TestUpdateEventSingleInstance() {
 
 	// change the start time
 	// rrule updates are handled on client side
-	start = time.Date(2019, 12, 1, 13, 0, 0, 0, time.UTC)
-	end = time.Date(2019, 12, 1, 14, 0, 0, 0, time.UTC)
-	rsp.Event.Start = start
-	rsp.Event.End = end
-
-	// update single instance of recurring
-	updatereq := &events.EventUpdateRequest{}
-	updatereq.Updatetype = events.SingleInstance
-	updatereq.Event = rsp.Event
-
-	err = suite.service.UpdateEvent(context.TODO(), updatereq, rsp)
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), start, rsp.Event.Start)
-	assert.Equal(suite.T(), end, rsp.Event.End)
-	assert.NotEqual(suite.T(), oldID, rsp.Event.Id)
-
-	// change the start time
-	// rrule updates are handled on client side
-	start = time.Date(2019, 12, 7, 13, 0, 0, 0, time.UTC)
-	end = time.Date(2019, 12, 7, 14, 0, 0, 0, time.UTC)
+	start = time.Date(2019, 12, 3, 13, 0, 0, 0, time.UTC)
+	end = time.Date(2019, 12, 3, 14, 0, 0, 0, time.UTC)
 	rsp.Event.Start = start
 	rsp.Event.End = end
 	rsp.Event.Id = oldID
 
 	// update single instance of recurring
-	updatereq = &events.EventUpdateRequest{}
+	updatereq := &events.EventUpdateRequest{}
 	updatereq.Updatetype = events.SingleInstance
 	updatereq.Event = rsp.Event
 
@@ -464,5 +447,205 @@ func (suite *EventsTestSuite) TestUpdateEventFutureInstance() {
 	// }
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 7, len(rangeRsp.Events))
+}
 
+func (suite *EventsTestSuite) TestRemoveEventSingleInstance() {
+	start := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
+	end := time.Date(2019, 12, 1, 13, 0, 0, 0, time.UTC)
+	dur := end.Sub(start)
+
+	// create an rrule
+	r, _ := rrule.NewRRule(rrule.ROption{
+		Freq:    rrule.DAILY,
+		Count:   7,
+		Dtstart: start,
+	})
+
+	req := &events.Event{
+		Title:     "Some Event",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Allday:    false,
+		Recurring: true,
+		Rrule:     r.String(),
+	}
+
+	rsp := &events.EventResponse{}
+	err := suite.service.CreateEvent(context.TODO(), req, rsp)
+	oldID := rsp.Event.Id
+	assert.Nil(suite.T(), err)
+
+	// date to remove
+	start = time.Date(2019, 12, 3, 13, 0, 0, 0, time.UTC)
+	end = time.Date(2019, 12, 3, 14, 0, 0, 0, time.UTC)
+	rsp.Event.Start = start
+	rsp.Event.End = end
+	rsp.Event.Id = oldID
+
+	// remove single instance of recurring
+	updatereq := &events.EventUpdateRequest{}
+	updatereq.Updatetype = events.SingleInstance
+	updatereq.Event = rsp.Event
+
+	err = suite.service.RemoveEvent(context.TODO(), updatereq, nil)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), start, rsp.Event.Start)
+	assert.Equal(suite.T(), end, rsp.Event.End)
+
+	// get range
+	startRange := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
+	endRange := startRange.AddDate(0, 0, 7)
+	rangeReq := &events.EventRangeRequest{
+		Start: startRange,
+		End:   endRange,
+	}
+	rangeRsp := &events.EventRangeResponse{}
+
+	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
+	// for _, time := range rangeRsp.Events {
+	// 	fmt.Println(time.Start)
+	// }
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 6, len(rangeRsp.Events))
+}
+
+func (suite *EventsTestSuite) TestRemoveEventFutureInstace() {
+	start := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
+	end := time.Date(2019, 12, 1, 13, 0, 0, 0, time.UTC)
+	dur := end.Sub(start)
+
+	// create an rrule
+	r, _ := rrule.NewRRule(rrule.ROption{
+		Freq:    rrule.DAILY,
+		Until:   start.AddDate(0, 0, 7),
+		Dtstart: start,
+	})
+
+	req := &events.Event{
+		Title:     "Some Event",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Allday:    false,
+		Recurring: true,
+		Rrule:     r.String(),
+	}
+
+	rsp := &events.EventResponse{}
+	err := suite.service.CreateEvent(context.TODO(), req, rsp)
+	assert.Nil(suite.T(), err)
+	startRange := time.Date(2019, 12, 1, 0, 0, 0, 0, time.UTC)
+	endRange := startRange.AddDate(0, 0, 7)
+	rangeReq := &events.EventRangeRequest{
+		Start: startRange,
+		End:   endRange,
+	}
+	rangeRsp := &events.EventRangeResponse{}
+	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
+	// for i, time := range rangeRsp.Events {
+	// 	fmt.Println(i, time.Start)
+	// }
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 7, len(rangeRsp.Events))
+
+	// change the start time
+	// rrule updates are handled on client side
+	start = time.Date(2019, 12, 3, 13, 0, 0, 0, time.UTC)
+	end = time.Date(2019, 12, 3, 14, 0, 0, 0, time.UTC)
+	rsp.Event.Start = start
+	rsp.Event.End = end
+	r.OrigOptions.Dtstart = start
+	rsp.Event.Rrule = r.String()
+
+	// update all instance of recurring
+	updatereq := &events.EventUpdateRequest{}
+	updatereq.Updatetype = events.FutureInstance
+	updatereq.Event = rsp.Event
+
+	err = suite.service.RemoveEvent(context.TODO(), updatereq, nil)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), start, rsp.Event.Start)
+	assert.Equal(suite.T(), r.String(), rsp.Event.Rrule)
+
+	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
+	// for i, time := range rangeRsp.Events {
+	// 	fmt.Println(i, time.Start)
+	// }
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 2, len(rangeRsp.Events))
+}
+
+func (suite *EventsTestSuite) TestRemoveEventAllInstance() {
+	// remove all instances of a recurring event
+	start := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
+	end := time.Date(2019, 12, 1, 13, 0, 0, 0, time.UTC)
+	dur := end.Sub(start)
+
+	// create an rrule
+	r, _ := rrule.NewRRule(rrule.ROption{
+		Freq:    rrule.DAILY,
+		Until:   start.AddDate(0, 0, 7),
+		Dtstart: start,
+	})
+
+	req := &events.Event{
+		Title:     "Some Event",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Allday:    false,
+		Recurring: true,
+		Rrule:     r.String(),
+	}
+
+	rsp := &events.EventResponse{}
+	err := suite.service.CreateEvent(context.TODO(), req, rsp)
+	assert.Nil(suite.T(), err)
+
+	// remove event
+	removereq := &events.EventUpdateRequest{}
+	removereq.Event = rsp.Event
+	err = suite.service.RemoveEvent(context.TODO(), removereq, nil)
+	assert.Nil(suite.T(), err)
+
+	// test event removed
+	err = suite.service.GetEvent(context.TODO(), &events.FincByIdRequest{Id: rsp.Event.Id}, rsp)
+	expected := errors.New("not found")
+	assert.Error(suite.T(), expected, err)
+
+}
+func (suite *EventsTestSuite) TestRemoveEvent() {
+	// start time timenow + 1 hour
+	start := time.Now().Add(time.Hour)
+	end := time.Now().Add(time.Hour * 2)
+	dur := end.Sub(start)
+	rsp := &events.EventResponse{}
+
+	// create testing request
+	req := &events.Event{
+		Id:        bson.NewObjectId().Hex(),
+		Title:     "Test Event Title",
+		Userid:    "1",
+		Start:     start,
+		End:       end,
+		Duration:  dur,
+		Recurring: false,
+		Allday:    false,
+	}
+	err := suite.service.CreateEvent(context.TODO(), req, rsp)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), rsp.Event)
+	assert.Equal(suite.T(), req.Start, rsp.Event.Start)
+
+	// remove event
+	removereq := &events.EventUpdateRequest{}
+	removereq.Event = rsp.Event
+	err = suite.service.RemoveEvent(context.TODO(), removereq, nil)
+	assert.Nil(suite.T(), err)
+
+	// test event removed
+	err = suite.service.GetEvent(context.TODO(), &events.FincByIdRequest{Id: rsp.Event.Id}, rsp)
+	expected := errors.New("not found")
+	assert.Error(suite.T(), expected, err)
 }
