@@ -13,6 +13,7 @@ It has these top-level messages:
 	CalendarResponse
 	FincByIdRequest
 	EventRangeRequest
+	EventUpdateRequest
 	EventRangeResponse
 	EventResponse
 	Event
@@ -57,7 +58,7 @@ type CalendarService interface {
 	UpdateCalendar(ctx context.Context, in *Calendar, opts ...client.CallOption) (*CalendarResponse, error)
 	CreateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error)
 	GetEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventResponse, error)
-	UpdateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error)
+	UpdateEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EventResponse, error)
 	RemoveEvent(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error)
 	GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error)
 }
@@ -140,7 +141,7 @@ func (c *calendarService) GetEvent(ctx context.Context, in *FincByIdRequest, opt
 	return out, nil
 }
 
-func (c *calendarService) UpdateEvent(ctx context.Context, in *Event, opts ...client.CallOption) (*EventResponse, error) {
+func (c *calendarService) UpdateEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EventResponse, error) {
 	req := c.c.NewRequest(c.name, "CalendarService.UpdateEvent", in)
 	out := new(EventResponse)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -179,7 +180,7 @@ type CalendarServiceHandler interface {
 	UpdateCalendar(context.Context, *Calendar, *CalendarResponse) error
 	CreateEvent(context.Context, *Event, *EventResponse) error
 	GetEvent(context.Context, *FincByIdRequest, *EventResponse) error
-	UpdateEvent(context.Context, *Event, *EventResponse) error
+	UpdateEvent(context.Context, *EventUpdateRequest, *EventResponse) error
 	RemoveEvent(context.Context, *FincByIdRequest, *EmptyResponse) error
 	GetEventsRange(context.Context, *EventRangeRequest, *EventRangeResponse) error
 }
@@ -192,7 +193,7 @@ func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler
 		UpdateCalendar(ctx context.Context, in *Calendar, out *CalendarResponse) error
 		CreateEvent(ctx context.Context, in *Event, out *EventResponse) error
 		GetEvent(ctx context.Context, in *FincByIdRequest, out *EventResponse) error
-		UpdateEvent(ctx context.Context, in *Event, out *EventResponse) error
+		UpdateEvent(ctx context.Context, in *EventUpdateRequest, out *EventResponse) error
 		RemoveEvent(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error
 		GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error
 	}
@@ -231,7 +232,7 @@ func (h *calendarServiceHandler) GetEvent(ctx context.Context, in *FincByIdReque
 	return h.CalendarServiceHandler.GetEvent(ctx, in, out)
 }
 
-func (h *calendarServiceHandler) UpdateEvent(ctx context.Context, in *Event, out *EventResponse) error {
+func (h *calendarServiceHandler) UpdateEvent(ctx context.Context, in *EventUpdateRequest, out *EventResponse) error {
 	return h.CalendarServiceHandler.UpdateEvent(ctx, in, out)
 }
 

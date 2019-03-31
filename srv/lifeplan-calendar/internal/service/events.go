@@ -24,7 +24,7 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 			return err
 		}
 		dates := r.All()
-		req.End = dates[len(r.All())-1]
+		req.End = dates[len(r.All())-1].Add(duration)
 	}
 
 	event := &events.Event{
@@ -51,51 +51,91 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 	return nil
 }
 
-func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
+// UpdateEvent updates a event in data store from events request.
+// There are three possibilities when it comes to updating.
+// Updating all instances of an event
+// Update only future event instances while keeping past instances
+// Update only a single selected instance.
+// Single selected update add exception date
+// Create new event
+func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpdateRequest, rsp *events.EventResponse) error {
 	var event *events.Event
-	err := ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
+	err := ev.db.Collection(CollectionEvents).FindId(req.Event.Id).One(&event)
 	if err != nil {
 		log.Printf("Error on geting Event %v", err)
 		return err
 	}
 
+	// update duration(Should this be called everytime?)
+	duration := req.Event.End.Sub(req.Event.Start)
+	req.Event.Duration = duration
+
+	switch req.Updatetype {
+	case events.SingleInstance:
+		// add exception date to recurring event
+		exception := time.Date(req.Event.Start.Year(), req.Event.Start.Month(), req.Event.Start.Day(), event.Start.Hour(), event.Start.Minute(), event.Start.Second(), 0, time.UTC)
+		event.Exdates = append(event.Exdates, exception)
+		err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
+		if err != nil {
+			return err
+		}
+		// create new event based on requirments.
+		req.Event.Recurring = false
+		req.Event.Rrule = ""
+		return ev.CreateEvent(ctx, req.Event, rsp)
+	case events.AllInstances:
+		if event.Recurring && event.Rrule != "" {
+			err = ev.db.Collection(CollectionEvents).UpdateId(req.Event.Id, req.Event)
+			if err != nil {
+				return err
+			}
+			reqid := &events.FincByIdRequest{
+				Id: req.Event.Id,
+			}
+			return ev.GetEvent(ctx, reqid, rsp)
+		}
+		break
+	case events.FutureInstance:
+		if event.Recurring && event.Rrule != "" {
+			// find last occurance up to today().
+			r, err := rrule.StrToRRule(event.Rrule)
+			if err != nil {
+				return err
+			}
+			rangedEvents := r.Between(event.Start, req.Event.Start, true)
+			lastOccurnace := rangedEvents[len(rangedEvents)-2]
+			r.OrigOptions.Until = lastOccurnace.Add(event.Duration)
+			event.End = lastOccurnace.Add(event.Duration)
+			event.Rrule = r.String()
+			// set old event end to last occurance
+			err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
+			if err != nil {
+				return err
+			}
+			// create new event with new rules
+			return ev.CreateEvent(ctx, req.Event, rsp)
+		}
+
+		break
+	default:
+		// non recurring events
+		err = ev.db.Collection(CollectionEvents).UpdateId(req.Event.Id, req.Event)
+		if err != nil {
+			return err
+		}
+		reqid := &events.FincByIdRequest{
+			Id: req.Event.Id,
+		}
+		return ev.GetEvent(ctx, reqid, rsp)
+	}
+
 	// handle RRULE change
-	// if start/end changes the client should update the RRULE
-	if event.Recurring && event.Rrule != "" && event.Rrule != req.Rrule {
-		// find last occurance up to today().
-		r, err := rrule.StrToRRule(event.Rrule)
-		if err != nil {
-			return err
-		}
-		rangedEvents := r.Between(req.Start, time.Now(), true)
-		lastOccured := rangedEvents[len(rangedEvents)+1]
-		r.Until(lastOccured)
-		event.End = lastOccured
+	// if start/end changes the client should update the RRULE?
 
-		// set old event end to last occurance
-		err = ev.db.Collection(CollectionEvents).UpdateId(req.Id, &event)
-		if err != nil {
-			return err
-		}
-		if err != nil {
-			return err
-		}
-
-		// create new event with new rules
-		ev.CreateEvent(ctx, req, rsp)
-	}
-	// update regular event
-	err = ev.db.Collection(CollectionEvents).UpdateId(req.Id, req)
-	if err != nil {
-		return err
-	}
-	reqid := &events.FincByIdRequest{
-		Id: req.Id,
-	}
-	ev.GetEvent(ctx, reqid, rsp)
 	return nil
 }
 
+// GetEvent retrieves Event from datastore from FindB
 func (ev *CalendarService) GetEvent(ctx context.Context, req *events.FincByIdRequest, rsp *events.EventResponse) error {
 	var event *events.Event
 	err := ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
@@ -108,7 +148,7 @@ func (ev *CalendarService) GetEvent(ctx context.Context, req *events.FincByIdReq
 }
 
 func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.FincByIdRequest, rsp *events.EmptyResponse) error {
-	//TODO: check if the userid owns the calendar first
+	//TODO: check if the userid owns the event9 first
 	err := ev.db.Collection(CollectionEvents).RemoveId(req.Id)
 	if err != nil {
 		return err
@@ -120,6 +160,7 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 
 	// check if the request event is in the recurring event bounds
 	var responseevents []*events.Event
+	var removeEvents []int
 	query := bson.M{
 		"$or": []bson.M{
 			// starts in range
@@ -136,6 +177,7 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 	}
 
 	// loop through events
+	// there might be a better way of doing this?
 	for i, event := range responseevents {
 		if event.Recurring && event.Rrule != "" {
 			set := rrule.Set{}
@@ -168,8 +210,11 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 				responseevents = append(responseevents, eventcp)
 			}
 			// remove the original event
-			responseevents = append(responseevents[:i], responseevents[i+1:]...)
+			removeEvents = append(removeEvents, i)
 		}
+	}
+	for _, j := range removeEvents {
+		responseevents = responseevents[:j+copy(responseevents[j:], responseevents[j+1:])]
 	}
 	rsp.Events = responseevents
 	return nil

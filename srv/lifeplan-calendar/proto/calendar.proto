@@ -14,7 +14,7 @@ service CalendarService {
 
     rpc CreateEvent(Event) returns (EventResponse);
     rpc GetEvent(FincByIdRequest) returns (EventResponse);
-    rpc UpdateEvent(Event) returns (EventResponse);
+    rpc UpdateEvent(EventUpdateRequest) returns (EventResponse);
     rpc RemoveEvent(FincByIdRequest) returns (EmptyResponse);
     rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
 }
@@ -40,6 +40,11 @@ message FincByIdRequest {
 message EventRangeRequest {
     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];  
+}
+
+message EventUpdateRequest {
+    int32 updatetype = 1;
+    Event event = 2;
 }
 
 message EventRangeResponse {
