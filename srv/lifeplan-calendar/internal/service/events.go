@@ -9,6 +9,7 @@ import (
 	rrule "github.com/teambition/rrule-go"
 )
 
+// CreateEvent Inserts new event into data store from given request event.
 func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
 	// TODO: grabs the id from context..
 	// duration
@@ -44,8 +45,6 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		return err
 	}
 
-	// rrule https://tools.ietf.org/html/rfc5545#section-3.8.5.3
-
 	rsp.Event = event
 	return nil
 }
@@ -69,7 +68,8 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 	switch req.Updatetype {
 	case events.SingleInstance:
 		// add exception date to recurring event
-		exception := time.Date(req.Event.Start.Year(), req.Event.Start.Month(), req.Event.Start.Day(), event.Start.Hour(), event.Start.Minute(), event.Start.Second(), 0, time.UTC)
+		exception := time.Date(req.Event.Start.Year(), req.Event.Start.Month(),
+			req.Event.Start.Day(), event.Start.Hour(), event.Start.Minute(), event.Start.Second(), 0, time.UTC)
 		event.Exdates = append(event.Exdates, exception)
 		err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
 		if err != nil {
@@ -131,7 +131,7 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 	return nil
 }
 
-// GetEvent retrieves Event from datastore from FindB
+// GetEvent retrieves Event from datastore from FincByIdRequest.
 func (ev *CalendarService) GetEvent(ctx context.Context, req *events.FincByIdRequest, rsp *events.EventResponse) error {
 	var event *events.Event
 	err := ev.db.Collection(CollectionEvents).FindId(req.Id).One(&event)
@@ -205,6 +205,8 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.EventUpd
 	return nil
 }
 
+// GetEventsRange retrieves events from datastore based on given start and end
+// timestamps.
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
 
 	// check if the request event is in the recurring event bounds
