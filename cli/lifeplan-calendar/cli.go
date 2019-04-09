@@ -136,5 +136,21 @@ func main() {
 	for _, e := range eventsrsp.Events {
 		log.Printf("Title: %s, RR: %v  Stime: %v Etime: %v\n", e.Title, e.Recurring, e.Start, e.End)
 	}
+
+	r, err = rrule.StrToRRule(eventrsp.Event.Rrule)
+	if err != nil {
+		log.Printf("Error in updating event %v", err)
+	}
+
+	// Test title
+	eventrsp.Event.Title = "UPDATE TITLE :D"
+	eventUpdate, err := client.UpdateEvent(context.TODO(), eventrsp.Event)
+	if err != nil {
+		log.Printf("Error on updating event %v", err)
+	}
+	log.Printf("Updated recurrence event %s", eventUpdate.Event.Title)
+
+	// Test rrule stuff
+	
 	os.Exit(0)
 }

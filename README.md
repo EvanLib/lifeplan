@@ -6,6 +6,7 @@ Microservices for a lifeplan application.
 * [ ] Documentation
 * [ ] Mock Testing
 * [ ] Proper logging
+* [ ] Exiting channel
 
 ## User/Auth Server
 * [ ] Implement OAUTH

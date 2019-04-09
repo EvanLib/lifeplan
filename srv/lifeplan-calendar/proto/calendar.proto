@@ -14,8 +14,8 @@ service CalendarService {
 
     rpc CreateEvent(Event) returns (EventResponse);
     rpc GetEvent(FincByIdRequest) returns (EventResponse);
-    rpc UpdateEvent(Event) returns (EventResponse);
-    rpc RemoveEvent(FincByIdRequest) returns (EmptyResponse);
+    rpc UpdateEvent(EventUpdateRequest) returns (EventResponse);
+    rpc RemoveEvent(EventUpdateRequest) returns (EmptyResponse);
     rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
 }
 
@@ -42,6 +42,11 @@ message EventRangeRequest {
     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];  
 }
 
+message EventUpdateRequest {
+    int32 updatetype = 1;
+    Event event = 2;
+}
+
 message EventRangeResponse {
     repeated Event events = 1;
 }
@@ -62,4 +67,6 @@ message Event {
     bool recurring = 7 [(gogoproto.moretags) = "bson:\"recurring\""];
     bool allday = 8 [(gogoproto.moretags) = "bson:\"allday\""];
     string rrule = 9 [(gogoproto.moretags) = "bson:\"rrule\""];
+    string exrule = 10 [(gogoproto.moretags) = "bson:\"exrule\""];
+    repeated google.protobuf.Timestamp exdates = 11 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"exdates\""];
 }
