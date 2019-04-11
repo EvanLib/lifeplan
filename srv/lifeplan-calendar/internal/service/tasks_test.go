@@ -155,7 +155,7 @@ func (suite *TasksTestSuite) TestCreateSubTask() {
 	tasks.StateMap(tasksRsp.Nodes, m)
 
 	// state map testing
-	for i, _ := range m {
+	for i := range m {
 		m[i] = tasks.DONE
 	}
 	updateReq := &tasks.TaskList{
@@ -233,10 +233,10 @@ func (suite *TasksTestSuite) TestDeleteTask() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), rsp.Task)
 
-	reqById := &tasks.FincByIdRequest{
+	reqByID := &tasks.FincByIdRequest{
 		Id: topid,
 	}
-	suite.service.DeleteTask(context.TODO(), reqById, nil)
+	suite.service.DeleteTask(context.TODO(), reqByID, nil)
 }
 
 func (suite *TasksTestSuite) TestUpdateTask() {
