@@ -16,3 +16,9 @@ Microservices for a lifeplan application.
 ## Lifeplan-calendar
 * [ ] Seperate Proto files
 * [ ] Write Testes for events/recurring events
+
+##Lifeplan-events
+* [ ] HTTP status errors
+
+##Lifeplan-tasks
+* [ ] HTTP Status Errors

@@ -17,6 +17,10 @@ service CalendarService {
     rpc UpdateEvent(EventUpdateRequest) returns (EventResponse);
     rpc RemoveEvent(EventUpdateRequest) returns (EmptyResponse);
     rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
+
+    rpc CreateTask(Task) returns (TaskResponse);
+    rpc GetTask(Task) returns (TaskResponse);
+    rpc GetTasks(TasksRequest) returns (TasksTree);
 }
 
 message EmptyResponse {}
@@ -69,4 +73,46 @@ message Event {
     string rrule = 9 [(gogoproto.moretags) = "bson:\"rrule\""];
     string exrule = 10 [(gogoproto.moretags) = "bson:\"exrule\""];
     repeated google.protobuf.Timestamp exdates = 11 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"exdates\""];
+    string tasknodeid = 12 [(gogoproto.moretags) = "bson:\"tasknodeid\""];
 }
+
+message Task {
+    string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+    string categoryid = 2 [(gogoproto.moretags) = "bson:\"categoryid\""];
+    int32 state = 3 [(gogoproto.moretags) = "bson:\"state\""];
+    string task = 4 [(gogoproto.moretags) = "bson:\"task\""];
+    string category = 5 [(gogoproto.moretags) = "bson:\"category\""];
+    string parent = 6 [(gogoproto.moretags) = "bson:\"parent\""];
+    repeated Task children = 7 [(gogoproto.moretags) = "bson:\"-\""];
+
+}
+
+message TreeNode { 
+    Task task = 1;
+    repeated TreeNode subtasks = 2;
+}
+
+message TasksTree {
+    repeated TreeNode nodes = 1;
+    string categoryid = 2;
+}
+
+message TasksRequest {
+    string categoryid = 1 [(gogoproto.moretags) = "bson:\"categoryid\""];
+    string filter = 2 [(gogoproto.moretags) = "bson:\"filter\""];
+    google.protobuf.Timestamp  categorytimestamp = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"categorytimestamp\""];
+}
+
+message TaskList {
+    string categoryid = 1 [(gogoproto.moretags) = "bson:\"categoryid\""];
+    google.protobuf.Timestamp  categorytimestamp = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"categorytimestamp\""];
+    map<string, int32> TaskStateMap = 3 [(gogoproto.moretags) = "bson:\"taskstatemap\""];
+}
+
+message TaskResponse {
+    int32 status = 1;
+    string err = 2;
+    Task task = 3;
+}
+
+
