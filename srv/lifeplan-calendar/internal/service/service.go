@@ -10,9 +10,11 @@ import (
 )
 
 const (
-	CollectionCalendar = "Lifeplan-Calendars"
-	CollectionEvents   = "Lifeplan-Events"
-	calErrorNotFound   = "calendar with specified data not found"
+	CollectionCalendar  = "Lifeplan-Calendars"
+	CollectionEvents    = "Lifeplan-Events"
+	CollectionTasks     = "Lifeplan-Tasks"
+	CollectionTasksList = "Lifeplan-TasksList"
+	calErrorNotFound    = "calendar with specified data not found"
 )
 
 type CalendarService struct {

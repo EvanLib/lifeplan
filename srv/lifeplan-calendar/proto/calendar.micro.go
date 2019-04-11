@@ -17,6 +17,12 @@ It has these top-level messages:
 	EventRangeResponse
 	EventResponse
 	Event
+	Task
+	TreeNode
+	TasksTree
+	TasksRequest
+	TaskList
+	TaskResponse
 */
 package calendar
 
@@ -61,6 +67,12 @@ type CalendarService interface {
 	UpdateEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EventResponse, error)
 	RemoveEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EmptyResponse, error)
 	GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error)
+	CreateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error)
+	GetTask(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*TaskResponse, error)
+	GetTasks(ctx context.Context, in *TasksRequest, opts ...client.CallOption) (*TasksTree, error)
+	UpdateTasksState(ctx context.Context, in *TaskList, opts ...client.CallOption) (*TasksTree, error)
+	UpdateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error)
+	DeleteTask(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error)
 }
 
 type calendarService struct {
@@ -171,6 +183,66 @@ func (c *calendarService) GetEventsRange(ctx context.Context, in *EventRangeRequ
 	return out, nil
 }
 
+func (c *calendarService) CreateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.CreateTask", in)
+	out := new(TaskResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) GetTask(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*TaskResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.GetTask", in)
+	out := new(TaskResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) GetTasks(ctx context.Context, in *TasksRequest, opts ...client.CallOption) (*TasksTree, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.GetTasks", in)
+	out := new(TasksTree)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) UpdateTasksState(ctx context.Context, in *TaskList, opts ...client.CallOption) (*TasksTree, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.UpdateTasksState", in)
+	out := new(TasksTree)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) UpdateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.UpdateTask", in)
+	out := new(TaskResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarService) DeleteTask(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EmptyResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.DeleteTask", in)
+	out := new(EmptyResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for CalendarService service
 
 type CalendarServiceHandler interface {
@@ -183,6 +255,12 @@ type CalendarServiceHandler interface {
 	UpdateEvent(context.Context, *EventUpdateRequest, *EventResponse) error
 	RemoveEvent(context.Context, *EventUpdateRequest, *EmptyResponse) error
 	GetEventsRange(context.Context, *EventRangeRequest, *EventRangeResponse) error
+	CreateTask(context.Context, *Task, *TaskResponse) error
+	GetTask(context.Context, *FincByIdRequest, *TaskResponse) error
+	GetTasks(context.Context, *TasksRequest, *TasksTree) error
+	UpdateTasksState(context.Context, *TaskList, *TasksTree) error
+	UpdateTask(context.Context, *Task, *TaskResponse) error
+	DeleteTask(context.Context, *FincByIdRequest, *EmptyResponse) error
 }
 
 func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler, opts ...server.HandlerOption) error {
@@ -196,6 +274,12 @@ func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler
 		UpdateEvent(ctx context.Context, in *EventUpdateRequest, out *EventResponse) error
 		RemoveEvent(ctx context.Context, in *EventUpdateRequest, out *EmptyResponse) error
 		GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error
+		CreateTask(ctx context.Context, in *Task, out *TaskResponse) error
+		GetTask(ctx context.Context, in *FincByIdRequest, out *TaskResponse) error
+		GetTasks(ctx context.Context, in *TasksRequest, out *TasksTree) error
+		UpdateTasksState(ctx context.Context, in *TaskList, out *TasksTree) error
+		UpdateTask(ctx context.Context, in *Task, out *TaskResponse) error
+		DeleteTask(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error
 	}
 	type CalendarService struct {
 		calendarService
@@ -242,4 +326,28 @@ func (h *calendarServiceHandler) RemoveEvent(ctx context.Context, in *EventUpdat
 
 func (h *calendarServiceHandler) GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error {
 	return h.CalendarServiceHandler.GetEventsRange(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) CreateTask(ctx context.Context, in *Task, out *TaskResponse) error {
+	return h.CalendarServiceHandler.CreateTask(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) GetTask(ctx context.Context, in *FincByIdRequest, out *TaskResponse) error {
+	return h.CalendarServiceHandler.GetTask(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) GetTasks(ctx context.Context, in *TasksRequest, out *TasksTree) error {
+	return h.CalendarServiceHandler.GetTasks(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) UpdateTasksState(ctx context.Context, in *TaskList, out *TasksTree) error {
+	return h.CalendarServiceHandler.UpdateTasksState(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) UpdateTask(ctx context.Context, in *Task, out *TaskResponse) error {
+	return h.CalendarServiceHandler.UpdateTask(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) DeleteTask(ctx context.Context, in *FincByIdRequest, out *EmptyResponse) error {
+	return h.CalendarServiceHandler.DeleteTask(ctx, in, out)
 }
