@@ -25,6 +25,10 @@ services:
     restart: unless-stopped
     ports:
       - '27017:27017'
+  lifeplan-api:
+    build: ./srv/lifeplan-api
+    depends_on: 
+      - lifeplancalendar
   microweb:
     image: microhq/micro
     command: web --address=0.0.0.0:8080
