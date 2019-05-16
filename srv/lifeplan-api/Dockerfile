@@ -5,12 +5,17 @@ FROM golang:1.12-alpine AS build_base
 RUN apk add bash ca-certificates git gcc g++ libc-dev
 WORKDIR /go/src/github.com/evanlib/lifeplan/srv/lifeplan-api
 
+# Git config for private repo
+RUN git config --global url."https://e31a0c4c034899f0ea4aa38c65d6af58e25e9200@github.com/".insteadOf "https://github.com/"
+
 # Force the go compiler to use modules
 ENV GO111MODULE=on
 
 # We want to populate the module cache based on the go.{mod,sum} files.
 COPY go.mod .
 COPY go.sum .
+
+# Git config
 
 #This is the ‘magic’ step that will download all the dependencies that are specified in 
 # the go.mod and go.sum file.

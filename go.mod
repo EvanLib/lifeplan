@@ -11,12 +11,13 @@ require (
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.1
 	github.com/kelseyhightower/envconfig v1.3.0
+	github.com/labstack/echo/v4 v4.1.5 // indirect
 	github.com/micro/go-micro v1.1.0
 	github.com/micro/micro v1.1.1
 	github.com/shurcooL/home v0.0.0-20190204141146-5c8ae21d4240 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/teambition/rrule-go v1.3.0
-	golang.org/x/net v0.0.0-20190328230028-74de082e2cca
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 	google.golang.org/grpc v1.19.1
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	k8s.io/utils v0.0.0-20190204185745-a326ccf4f02b // indirect

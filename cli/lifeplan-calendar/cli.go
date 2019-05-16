@@ -35,7 +35,7 @@ func main() {
 
 	cmd.Init()
 	// create new user client
-	client := pb.NewCalendarService("go.micro.src.lifeplan-calendar", microclient.DefaultClient)
+	client := pb.NewCalendarService("go.micro.srv.calendar", microclient.DefaultClient)
 
 	calendarname := "Evan's Calendar"
 
@@ -151,6 +151,6 @@ func main() {
 	log.Printf("Updated recurrence event %s", eventUpdate.Event.Title)
 
 	// Test rrule stuff
-	
+
 	os.Exit(0)
 }

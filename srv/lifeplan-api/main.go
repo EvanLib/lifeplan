@@ -1,40 +1,45 @@
 package main
 
 import (
+	"github.com/evanlib/lifeplan/srv/lifeplan-api/api"
 	"log"
-	"encoding/json"
-
-	calendar "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
-	"github.com/micro/go-micro"
-	api "github.com/micro/micro/api/proto"
-
-	"context"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-type CalendarAPI struct {
-	Client calendar.CalendarService
-}
-
-func (cal *CalendarAPI) CreateEvent(ctx context.Context, req *api.Request, rsp *api.Response) error {
-	log.Print("Received Calendar.CreateEvent API request")
-	rsp.StatusCode = 200
-	b, _ := json.Marshal(map[string]string{
-		"message": "AYYYEEE",
-	})
-	rsp.Body = string(b)
-	return nil
-}
-
 func main() {
-	service := micro.NewService(
-		micro.Name("go.micro.api.calendar"),
-	)
+	// create api server instance
+	api, err := api.NewServer()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	service.Init()
-	service.Server().Handle(
-		service.Server().NewHandler(
-			&CalendarAPI{
-				Client: calendar.NewCalendarService("go.micro.src.lifeplan-calendar", service.Client())},
-		),
-	)
+	//initialize server
+	api.Start()
+
+
+	handleOsSignals(api)
+
+}
+
+func handleOsSignals(server *api.Api) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+
+	exitChan := make(chan int)
+
+	go func() {
+		for {
+			s := <-signalChan
+			switch s {
+			case os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT:
+				server.Stop()
+				exitChan <- 0
+			}
+		}
+	}()
+
+	code := <-exitChan
+	os.Exit(code)
 }

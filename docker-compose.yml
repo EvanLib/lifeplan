@@ -29,6 +29,8 @@ services:
     build: ./srv/lifeplan-api
     depends_on: 
       - lifeplancalendar
+    ports:
+      - '3001:3001'
   microweb:
     image: microhq/micro
     command: web --address=0.0.0.0:8080
@@ -38,7 +40,7 @@ services:
       - users
   microapi:
     image: microhq/micro
-    command: api --address=0.0.0.0:8080 --handler=api
+    command: api --address=0.0.0.0:8080
     ports:
       - "8080:8080"
     links:
