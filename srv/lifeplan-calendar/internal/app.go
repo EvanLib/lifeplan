@@ -34,7 +34,7 @@ func (app *Application) Init() {
 	app.initDatabase()
 	// micro options
 	options := []micro.Option{
-		micro.Name("go.micro.src.lifeplan-calendar"),
+		micro.Name("go.micro.srv.calendar"),
 		micro.Version("0.1"),
 	}
 

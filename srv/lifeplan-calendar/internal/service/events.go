@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"time"
-
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/globalsign/mgo/bson"
 	rrule "github.com/teambition/rrule-go"
@@ -15,6 +14,7 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 	// duration
 	duration := req.End.Sub(req.Start)
 
+	
 	// You must be able to distinguish between the recurrence pattern end date
 	// and the end date of each event instance to enable practical querying
 	if req.Recurring {
@@ -99,6 +99,11 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 				return err
 			}
 			rangedEvents := r.Between(event.Start, req.Event.Start, true)
+			// TODO: fix this workaround...
+			if len(rangedEvents) < 2 {
+				req.Updatetype = events.AllInstances
+				ev.UpdateEvent(ctx, req, rsp)
+			}
 			lastOccurnace := rangedEvents[len(rangedEvents)-2]
 			r.OrigOptions.Until = lastOccurnace.Add(event.Duration)
 			event.End = lastOccurnace.Add(event.Duration)
@@ -183,6 +188,11 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.EventUpd
 				return err
 			}
 			rangedEvents := r.Between(event.Start, req.Event.Start, true)
+			// TODO: rework this algorithm
+			if len(rangedEvents) < 2 {
+				req.Updatetype = events.AllInstances
+				ev.RemoveEvent(ctx, req, rsp)
+			}
 			lastOccurnace := rangedEvents[len(rangedEvents)-2]
 			r.OrigOptions.Until = lastOccurnace.Add(event.Duration)
 			event.End = lastOccurnace.Add(event.Duration)
@@ -208,7 +218,6 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.EventUpd
 // GetEventsRange retrieves events from datastore based on given start and end
 // timestamps.
 func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.EventRangeRequest, rsp *events.EventRangeResponse) error {
-
 	// check if the request event is in the recurring event bounds
 	var responseevents []*events.Event
 	var removeEvents []int

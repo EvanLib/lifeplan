@@ -17,11 +17,12 @@ const (
 	calErrorNotFound    = "calendar with specified data not found"
 )
 
+// CalendarService represents a controller for calenders.
 type CalendarService struct {
 	db *database.Source
 }
 
-// InitCalednarService returns pointer to a new calendar Service
+// NewCalendarService returns pointer to a new CalendarService.
 func NewCalendarService(db *database.Source) *CalendarService {
 	return &CalendarService{
 		db: db,
@@ -48,6 +49,9 @@ func (cs *CalendarService) CreateCalendar(ctx context.Context, req *calendar.Cal
 	return nil
 }
 
+// GetCalendar retrieves calender from datastore.
+// stores the calender in the response pointer
+// returns error or nil
 func (cs *CalendarService) GetCalendar(ctx context.Context, req *calendar.FincByIdRequest, rsp *calendar.CalendarResponse) error {
 	var cal *calendar.Calendar
 	err := cs.db.Collection(CollectionCalendar).FindId(req.Id).One(&cal)
