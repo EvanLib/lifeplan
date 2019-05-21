@@ -11,6 +11,14 @@ import (
 	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 )
 
+const (
+	errorQueryParamsIncorrect = "incorrect query parameters"
+
+	requestFindByID = "id"
+	requestTimeMin  = "timeMin"
+	requestTimeMax  = "timeMax"
+)
+
 type Api struct {
 	Http            *echo.Echo
 	calendarservice calendarservice.CalendarService

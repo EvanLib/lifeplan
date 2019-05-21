@@ -45,6 +45,7 @@ message FincByIdRequest {
 }
 
 message EventRangeRequest {
+    string userid = 1;
     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];  
 }
@@ -87,7 +88,6 @@ message Task {
     string category = 5 [(gogoproto.moretags) = "bson:\"category\""];
     string parent = 6 [(gogoproto.moretags) = "bson:\"parent\""];
     repeated Task children = 7 [(gogoproto.moretags) = "bson:\"-\""];
-
 }
 
 message TreeNode { 

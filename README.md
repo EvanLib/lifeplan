@@ -13,6 +13,10 @@ Microservices for a lifeplan application.
 * [ ] JWT Expired Keys 
 * [ ] Create RSA keys on deployment
 
+## API
+* [ ] Authorization/Authenication
+* [ ] Deployment?
+
 ## Lifeplan-calendar
 * [ ] Seperate Proto files
 * [ ] Validation of input
