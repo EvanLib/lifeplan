@@ -1,113 +1,34 @@
 package api
 
 import (
-	"bytes"
 	"context"
-	"io/ioutil"
 	"net/http"
+	"time"
 
 	calendar "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/labstack/echo/v4"
 )
 
-type EventJsonBinder struct{}
-type EventRangeJsonBinder struct{}
-type EventUpdateJsonBinder struct{}
+const (
+	CalendarType   = "calendars"
+	CalendarDomain = "calendar"
+
+	EventType = "event"
+)
 
 type calendarRoute struct {
 	*Api
 }
 
 func (api *Api) InitCalendarRoutes() *Api {
-	route := calendarRoute{Api: api}
-	api.Http.POST("/api/v1/event", route.createEvent)
-	api.Http.POST("/api/v1/event/:id", route.updateEvent)
-	api.Http.GET("/api/v1/events/getByRange", route.getEventByRange)
-	api.Http.GET("api/v1/events", route.getEvents)
-	api.Http.GET("/api/v1/event/:id", route.getEvent)
-	api.Http.DELETE("api/v1/event/:id", route.deleteEvent)
+	// route := calendarRoute{Api: api}
+	// api.Http.POST("/api/v1/event", route.createEvent)
+	// api.Http.POST("/api/v1/event/:id", route.updateEvent)
+	// api.Http.GET("/api/v1/events/getByRange", route.getEventByRange)
+	// api.Http.GET("api/v1/events", route.getEvents)
+	// api.Http.GET("/api/v1/event/:id", route.getEvent)
+	// api.Http.DELETE("api/v1/event/:id", route.deleteEvent)
 	return api
-}
-
-func (cb *EventJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
-	var buf []byte
-
-	if ctx.Request().Body != nil {
-		buf, err = ioutil.ReadAll(ctx.Request().Body)
-		rdr := ioutil.NopCloser(bytes.NewBuffer(buf))
-
-		if err != nil {
-			return err
-		}
-
-		ctx.Request().Body = rdr
-	}
-
-	db := new(echo.DefaultBinder)
-	if err = db.Bind(i, ctx); err != nil {
-		return err
-	}
-
-	return
-}
-
-func (cb *EventRangeJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
-	var buf []byte
-
-	if ctx.Request().Body != nil {
-		buf, err = ioutil.ReadAll(ctx.Request().Body)
-		rdr := ioutil.NopCloser(bytes.NewBuffer(buf))
-
-		if err != nil {
-			return err
-		}
-
-		ctx.Request().Body = rdr
-	}
-
-	db := new(echo.DefaultBinder)
-	if err = db.Bind(i, ctx); err != nil {
-		return err
-	}
-
-	return
-}
-
-func (cb *EventUpdateJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
-	var buf []byte
-
-	if ctx.Request().Body != nil {
-		buf, err = ioutil.ReadAll(ctx.Request().Body)
-		rdr := ioutil.NopCloser(bytes.NewBuffer(buf))
-
-		if err != nil {
-			return err
-		}
-
-		ctx.Request().Body = rdr
-	}
-
-	db := new(echo.DefaultBinder)
-	if err = db.Bind(i, ctx); err != nil {
-		return err
-	}
-
-	return
-}
-
-func (r *calendarRoute) createEvent(ctx echo.Context) error {
-	req := &calendar.Event{}
-	err := (&EventJsonBinder{}).Bind(req, ctx)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
-	}
-
-	rsp, err := r.Api.calendarservice.CreateEvent(context.TODO(), req)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return ctx.JSON(http.StatusOK, rsp)
 }
 
 func (r *calendarRoute) getEvent(ctx echo.Context) error {
@@ -123,6 +44,7 @@ func (r *calendarRoute) getEvent(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, rsp)
 }
+
 func (r *calendarRoute) getEventByRange(ctx echo.Context) error {
 	req := &calendar.EventRangeRequest{}
 	err := (&EventRangeJsonBinder{}).Bind(req, ctx)
@@ -182,6 +104,17 @@ func (r *calendarRoute) deleteEvent(ctx echo.Context) error {
 }
 
 func (r *calendarRoute) getEvents(ctx echo.Context) error {
+
+	req := &calendar.EventRangeRequest{
+		Userid: "1",
+		Start:  time.Time{},
+		End:    time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
+
+	rsp, err := r.calendarservice.GetEventsRange(context.TODO(), req)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
 	return ctx.JSON(http.StatusOK, rsp)
 }

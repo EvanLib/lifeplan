@@ -6,6 +6,7 @@ import (
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/globalsign/mgo/bson"
 	rrule "github.com/teambition/rrule-go"
+	"log"
 )
 
 // CreateEvent Inserts new event into data store from given request event.
@@ -230,7 +231,9 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 			// spans range
 			bson.M{"start": bson.M{"$lte": req.Start}, "end": bson.M{"$gte": req.End}},
 		},
+		"userid": req.Userid,
 	}
+	log.Println(query)
 	err := ev.db.Collection(CollectionEvents).Find(query).All(&responseevents)
 	if err != nil {
 		return err

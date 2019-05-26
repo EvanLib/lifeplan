@@ -1,15 +1,14 @@
 version: '3.7'
 
 services:
-  users:
-    build: ./srv/users
-    depends_on: 
-      - lifeplan-mongo
-    environment:
-      MONGO_HOST: lifeplan-mongo
-      MONGO_DB: lifeplan_users
-      MONGO_USER: ""
-      MONGO_PASSWORD: ""
+  
+  lifeplan-redis:
+    image: redis:latest
+    container_name: lifeplan-redis
+    restart: unless-stopped
+    ports: 
+      - "6379:6379"
+      - "6380:6380"
   lifeplancalendar:
     build: ./srv/lifeplan-calendar
     depends_on: 
@@ -28,20 +27,20 @@ services:
   lifeplan-api:
     build: ./srv/lifeplan-api
     depends_on: 
+      - lifeplan-redis
       - lifeplancalendar
     ports:
       - '3001:3001'
+    environment:
+      - LIFEPLANAPI_ENFORCER_HOST=lifeplan-redis
+      - LIFEPLANAPI_SERVER_PORT=3001 
   microweb:
     image: microhq/micro
     command: web --address=0.0.0.0:8080
     ports:
       - "80:8080"
-    links:
-      - users
   microapi:
     image: microhq/micro
     command: api --address=0.0.0.0:8080
     ports:
       - "8080:8080"
-    links:
-      - users

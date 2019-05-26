@@ -5,10 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/ProtocolONE/rbac"
+	apirbac "github.com/evanlib/lifeplan/srv/lifeplan-api/pkg/api/apirbac"
+	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/micro/go-micro"
-
-	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 )
 
 const (
@@ -19,18 +21,37 @@ const (
 	requestTimeMax  = "timeMax"
 )
 
+type ApiOptions struct {
+	Enforcer *rbac.Enforcer
+}
+
 type Api struct {
 	Http            *echo.Echo
+	Router          *echo.Group
+	enforcer        *rbac.Enforcer
 	calendarservice calendarservice.CalendarService
 	service         micro.Service
 }
 
-func NewServer() (*Api, error) {
-	//
+type APIValidator struct {
+	validator *validator.Validate
+}
+
+func (apiVal *APIValidator) Validate(i interface{}) error {
+	return apiVal.validator.Struct(i)
+}
+
+func NewServer(options *ApiOptions) (*Api, error) {
 	api := &Api{
-		Http: echo.New(),
+		Http:     echo.New(),
+		enforcer: options.Enforcer,
 	}
 
+	// Echo Middlewares
+	appContext := apirbac.NewAppContextMiddleware(api.enforcer)
+	api.Router = api.Http.Group("/api/v1")
+	api.Http.Use(appContext)
+	api.Http.Validator = &APIValidator{validator: validator.New()}
 	api.InitServices()
 	return api, nil
 }
@@ -48,7 +69,11 @@ func (api *Api) InitServices() {
 	api.calendarservice = calendarservice.NewCalendarService("go.micro.srv.calendar", api.service.Client())
 
 	// http routing
-	api.InitCalendarRoutes()
+	eventsRoute := &EventsRouter{
+		Calendarservice: api.calendarservice,
+	}
+
+	eventsRoute.InitRoutes(api.Router)
 }
 
 func (api *Api) Start() error {
