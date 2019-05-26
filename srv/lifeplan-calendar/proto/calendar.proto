@@ -41,6 +41,7 @@ message CalendarResponse {
 }
 
 message FincByIdRequest {
+    // @inject_tag: validate:"required,hexadecimal,len=24"
     string id = 1;
 }
 
