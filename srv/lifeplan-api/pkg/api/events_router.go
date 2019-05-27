@@ -23,6 +23,7 @@ type EventsRouter struct {
 	Calendarservice calendarservice.CalendarService
 }
 
+// TODO: FIX THIS BAD PRACTICE
 func (r *EventsRouter) GetOwner(ctx apirbac.AppContext) (string, error) {
 	owner := ctx.QueryParam("ownerTesting")
 	return owner, nil
@@ -106,12 +107,12 @@ func (r *EventsRouter) InitRoutes(route *echo.Group) {
 	er.GET("/events", r.GetEvents, nil)
 	er.POST("/events", r.CreateEvent, nil)
 
-	eventsGroup := apirbac.Group(route, "/events", r, []string{"eventId", EventType, CalendarDomain})
-	eventsGroup.GET("/:eventId", r.Get, nil)
+	eventsGroup := apirbac.Group(route, "/events", r, []string{"eventID", EventType, CalendarDomain})
+	eventsGroup.GET("/:eventID", r.Get, nil)
 }
 
 func (r *EventsRouter) Get(ctx echo.Context) error {
-	id := ctx.Param("eventId")
+	id := ctx.Param("eventID")
 	fmt.Println(id)
 	if id == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
@@ -122,7 +123,7 @@ func (r *EventsRouter) Get(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(req); err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	rsp, err := r.Calendarservice.GetEvent(context.TODO(), &calendar.FincByIdRequest{Id: id})
