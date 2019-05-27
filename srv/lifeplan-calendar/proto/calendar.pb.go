@@ -402,9 +402,8 @@ func (m *EventResponse) GetEvent() *Event {
 type Event struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
 	// @inject_tag: validate:"required,max=240"
-	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" bson:"title" validate:"required,max=240"`
-	// @inject_tag: validate:"required,hexadecimal,len=24"
-	Userid string `protobuf:"bytes,3,opt,name=userid,proto3" json:"userid,omitempty" bson:"userid" validate:"required,hexadecimal,len=24"`
+	Title  string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" bson:"title" validate:"required,max=240"`
+	Userid string `protobuf:"bytes,3,opt,name=userid,proto3" json:"userid,omitempty" bson:"userid"`
 	// @inject_tag: validate:"required,ISO8601date"
 	Start time.Time `protobuf:"bytes,4,opt,name=start,proto3,stdtime" json:"start" bson:"start" validate:"required,ISO8601date"`
 	// @inject_tag: validate:"required,ISO8601date"
