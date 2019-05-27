@@ -284,6 +284,11 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 }
 
 func (ev *CalendarService) GetEventsByUserID(ctx context.Context, req *events.FincByIdRequest, rsp *events.EventRangeResponse) error {
-	
-	return nil
+	// Range request with userid.
+	rangereq := &events.EventRangeRequest{
+		Userid: req.Id,
+		Start:  time.Time{},
+		End:    time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
+	return ev.GetEventsRange(ctx, rangereq, rsp) 
 }
