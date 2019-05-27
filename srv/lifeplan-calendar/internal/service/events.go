@@ -282,3 +282,8 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 	rsp.Events = responseevents
 	return nil
 }
+
+func (ev *CalendarService) GetEventsByUserID(ctx context.Context, req *events.FincByIdRequest, rsp *events.EventRangeResponse) error {
+	
+	return nil
+}
