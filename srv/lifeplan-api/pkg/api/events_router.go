@@ -158,6 +158,10 @@ func (r *EventsRouter) CreateEvent(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
 	}
 
+	if err := ctx.Validate(req); err != nil {
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
+	}
+
 	rsp, err := r.Calendarservice.CreateEvent(context.TODO(), req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
