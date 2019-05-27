@@ -8,7 +8,7 @@ import (
 	"github.com/ProtocolONE/rbac"
 	apirbac "github.com/evanlib/lifeplan/srv/lifeplan-api/pkg/api/apirbac"
 	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
-	"github.com/go-playground/validator"
+	"gopkg.in/go-playground/validator.v9"
 	"github.com/labstack/echo/v4"
 	"github.com/micro/go-micro"
 )
@@ -51,7 +51,12 @@ func NewServer(options *ApiOptions) (*Api, error) {
 	appContext := apirbac.NewAppContextMiddleware(api.enforcer)
 	api.Router = api.Http.Group("/api/v1")
 	api.Http.Use(appContext)
-	api.Http.Validator = &APIValidator{validator: validator.New()}
+	//create new validator
+	validator := validator.New()
+	//register the custom validation for ISISO8601 date
+	validator.RegisterValidation("ISO8601date", IsISO8601Date)
+	api.Http.Validator = &APIValidator{validator: validator}
+
 	api.InitServices()
 	return api, nil
 }

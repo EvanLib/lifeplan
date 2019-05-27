@@ -46,13 +46,18 @@ message FincByIdRequest {
 }
 
 message EventRangeRequest {
+    // @inject_tag: validate:"required,hexadecimal,len=24"
     string userid = 1;
+    // @inject_tag: validate:"required,ISO8601date"
     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
+    // @inject_tag: validate:"required,ISO8601date"
     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];  
 }
 
 message EventUpdateRequest {
+    // @inject_tag: validate:"required,max=240"
     int32 updatetype = 1;
+    // @inject_tag: validate:"required,dive,required"
     Event event = 2;
 }
 
@@ -68,9 +73,13 @@ message EventResponse {
 
 message Event {
     string id = 1 [(gogoproto.moretags) = "bson:\"_id\""];
+    // @inject_tag: validate:"required,max=240"
     string title = 2 [(gogoproto.moretags) = "bson:\"title\""];
+    // @inject_tag: validate:"required,hexadecimal,len=24"
     string userid = 3 [(gogoproto.moretags) = "bson:\"userid\""];
+    // @inject_tag: validate:"required,ISO8601date"
     google.protobuf.Timestamp start = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"start\""];
+    // @inject_tag: validate:"required,ISO8601date"
     google.protobuf.Timestamp end = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"end\""];
     google.protobuf.Duration duration = 6 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "bson:\"duration\""];
     bool recurring = 7 [(gogoproto.moretags) = "bson:\"recurring\""];

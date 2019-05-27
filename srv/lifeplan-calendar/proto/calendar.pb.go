@@ -203,9 +203,12 @@ func (m *FincByIdRequest) GetId() string {
 }
 
 type EventRangeRequest struct {
-	Userid               string    `protobuf:"bytes,1,opt,name=userid,proto3" json:"userid,omitempty"`
-	Start                time.Time `protobuf:"bytes,4,opt,name=start,proto3,stdtime" json:"start" bson:"start"`
-	End                  time.Time `protobuf:"bytes,5,opt,name=end,proto3,stdtime" json:"end" bson:"end"`
+	// @inject_tag: validate:"required,hexadecimal,len=24"
+	Userid string `protobuf:"bytes,1,opt,name=userid,proto3" json:"userid,omitempty" validate:"required,hexadecimal,len=24"`
+	// @inject_tag: validate:"required,ISO8601date"
+	Start time.Time `protobuf:"bytes,4,opt,name=start,proto3,stdtime" json:"start" bson:"start" validate:"required,ISO8601date"`
+	// @inject_tag: validate:"required,ISO8601date"
+	End                  time.Time `protobuf:"bytes,5,opt,name=end,proto3,stdtime" json:"end" bson:"end" validate:"required,ISO8601date"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-" bson:"-"`
 	XXX_unrecognized     []byte    `json:"-" bson:"-"`
 	XXX_sizecache        int32     `json:"-" bson:"-"`
@@ -257,8 +260,10 @@ func (m *EventRangeRequest) GetEnd() time.Time {
 }
 
 type EventUpdateRequest struct {
-	Updatetype           int32    `protobuf:"varint,1,opt,name=updatetype,proto3" json:"updatetype,omitempty"`
-	Event                *Event   `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+	// @inject_tag: validate:"required,max=240"
+	Updatetype int32 `protobuf:"varint,1,opt,name=updatetype,proto3" json:"updatetype,omitempty" validate:"required,max=240"`
+	// @inject_tag: validate:"required,dive,required"
+	Event                *Event   `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty" validate:"required,dive,required"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-" bson:"-"`
 	XXX_unrecognized     []byte   `json:"-" bson:"-"`
 	XXX_sizecache        int32    `json:"-" bson:"-"`
@@ -395,11 +400,15 @@ func (m *EventResponse) GetEvent() *Event {
 }
 
 type Event struct {
-	Id                   string        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
-	Title                string        `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" bson:"title"`
-	Userid               string        `protobuf:"bytes,3,opt,name=userid,proto3" json:"userid,omitempty" bson:"userid"`
-	Start                time.Time     `protobuf:"bytes,4,opt,name=start,proto3,stdtime" json:"start" bson:"start"`
-	End                  time.Time     `protobuf:"bytes,5,opt,name=end,proto3,stdtime" json:"end" bson:"end"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
+	// @inject_tag: validate:"required,max=240"
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" bson:"title" validate:"required,max=240"`
+	// @inject_tag: validate:"required,hexadecimal,len=24"
+	Userid string `protobuf:"bytes,3,opt,name=userid,proto3" json:"userid,omitempty" bson:"userid" validate:"required,hexadecimal,len=24"`
+	// @inject_tag: validate:"required,ISO8601date"
+	Start time.Time `protobuf:"bytes,4,opt,name=start,proto3,stdtime" json:"start" bson:"start" validate:"required,ISO8601date"`
+	// @inject_tag: validate:"required,ISO8601date"
+	End                  time.Time     `protobuf:"bytes,5,opt,name=end,proto3,stdtime" json:"end" bson:"end" validate:"required,ISO8601date"`
 	Duration             time.Duration `protobuf:"bytes,6,opt,name=duration,proto3,stdduration" json:"duration" bson:"duration"`
 	Recurring            bool          `protobuf:"varint,7,opt,name=recurring,proto3" json:"recurring,omitempty" bson:"recurring"`
 	Allday               bool          `protobuf:"varint,8,opt,name=allday,proto3" json:"allday,omitempty" bson:"allday"`
