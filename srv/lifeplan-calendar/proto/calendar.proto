@@ -17,7 +17,7 @@ service CalendarService {
     rpc UpdateEvent(EventUpdateRequest) returns (EventResponse);
     rpc RemoveEvent(EventUpdateRequest) returns (EmptyResponse);
     rpc GetEventsRange(EventRangeRequest) returns (EventRangeResponse);
-
+    rpc GetEventsByUserID(FincByIdRequest) returns (EventRangeResponse);
     rpc CreateTask(Task) returns (TaskResponse);
     rpc GetTask(FincByIdRequest) returns (TaskResponse);
     rpc GetTasks(TasksRequest) returns (TasksTree);

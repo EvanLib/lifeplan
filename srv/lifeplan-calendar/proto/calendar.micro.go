@@ -67,6 +67,7 @@ type CalendarService interface {
 	UpdateEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EventResponse, error)
 	RemoveEvent(ctx context.Context, in *EventUpdateRequest, opts ...client.CallOption) (*EmptyResponse, error)
 	GetEventsRange(ctx context.Context, in *EventRangeRequest, opts ...client.CallOption) (*EventRangeResponse, error)
+	GetEventsByUserID(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventRangeResponse, error)
 	CreateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error)
 	GetTask(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*TaskResponse, error)
 	GetTasks(ctx context.Context, in *TasksRequest, opts ...client.CallOption) (*TasksTree, error)
@@ -183,6 +184,16 @@ func (c *calendarService) GetEventsRange(ctx context.Context, in *EventRangeRequ
 	return out, nil
 }
 
+func (c *calendarService) GetEventsByUserID(ctx context.Context, in *FincByIdRequest, opts ...client.CallOption) (*EventRangeResponse, error) {
+	req := c.c.NewRequest(c.name, "CalendarService.GetEventsByUserID", in)
+	out := new(EventRangeResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *calendarService) CreateTask(ctx context.Context, in *Task, opts ...client.CallOption) (*TaskResponse, error) {
 	req := c.c.NewRequest(c.name, "CalendarService.CreateTask", in)
 	out := new(TaskResponse)
@@ -255,6 +266,7 @@ type CalendarServiceHandler interface {
 	UpdateEvent(context.Context, *EventUpdateRequest, *EventResponse) error
 	RemoveEvent(context.Context, *EventUpdateRequest, *EmptyResponse) error
 	GetEventsRange(context.Context, *EventRangeRequest, *EventRangeResponse) error
+	GetEventsByUserID(context.Context, *FincByIdRequest, *EventRangeResponse) error
 	CreateTask(context.Context, *Task, *TaskResponse) error
 	GetTask(context.Context, *FincByIdRequest, *TaskResponse) error
 	GetTasks(context.Context, *TasksRequest, *TasksTree) error
@@ -274,6 +286,7 @@ func RegisterCalendarServiceHandler(s server.Server, hdlr CalendarServiceHandler
 		UpdateEvent(ctx context.Context, in *EventUpdateRequest, out *EventResponse) error
 		RemoveEvent(ctx context.Context, in *EventUpdateRequest, out *EmptyResponse) error
 		GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error
+		GetEventsByUserID(ctx context.Context, in *FincByIdRequest, out *EventRangeResponse) error
 		CreateTask(ctx context.Context, in *Task, out *TaskResponse) error
 		GetTask(ctx context.Context, in *FincByIdRequest, out *TaskResponse) error
 		GetTasks(ctx context.Context, in *TasksRequest, out *TasksTree) error
@@ -326,6 +339,10 @@ func (h *calendarServiceHandler) RemoveEvent(ctx context.Context, in *EventUpdat
 
 func (h *calendarServiceHandler) GetEventsRange(ctx context.Context, in *EventRangeRequest, out *EventRangeResponse) error {
 	return h.CalendarServiceHandler.GetEventsRange(ctx, in, out)
+}
+
+func (h *calendarServiceHandler) GetEventsByUserID(ctx context.Context, in *FincByIdRequest, out *EventRangeResponse) error {
+	return h.CalendarServiceHandler.GetEventsByUserID(ctx, in, out)
 }
 
 func (h *calendarServiceHandler) CreateTask(ctx context.Context, in *Task, out *TaskResponse) error {

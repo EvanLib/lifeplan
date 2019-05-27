@@ -8,9 +8,9 @@ import (
 	"github.com/ProtocolONE/rbac"
 	apirbac "github.com/evanlib/lifeplan/srv/lifeplan-api/pkg/api/apirbac"
 	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
-	"gopkg.in/go-playground/validator.v9"
 	"github.com/labstack/echo/v4"
 	"github.com/micro/go-micro"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 const (

@@ -42,6 +42,7 @@ func (cb *EventJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
 		rdr := ioutil.NopCloser(bytes.NewBuffer(buf))
 
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
@@ -50,6 +51,8 @@ func (cb *EventJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
 
 	db := new(echo.DefaultBinder)
 	if err = db.Bind(i, ctx); err != nil {
+		fmt.Println(err)
+
 		return err
 	}
 
@@ -152,12 +155,12 @@ func (r *EventsRouter) GetEvents(ctx echo.Context) error {
 
 func (r *EventsRouter) CreateEvent(ctx echo.Context) error {
 	req := &calendar.Event{}
-	req.Userid = GetUserID()
+
 	err := (&EventJsonBinder{}).Bind(req, ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
 	}
-
+	req.Userid = GetUserID()
 	if err := ctx.Validate(req); err != nil {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
 	}
