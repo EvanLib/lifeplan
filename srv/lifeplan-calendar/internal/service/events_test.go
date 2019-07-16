@@ -59,13 +59,12 @@ func (suite *EventsTestSuite) TestEventCreate() {
 	// start time timenow + 1 hour
 	start := time.Now().Add(time.Hour)
 	end := time.Now().Add(time.Hour * 2)
-	dur := end.Sub(start)
+	dur, _ := time.ParseDuration("3600s")
 
 	rsp := &events.EventResponse{}
 
 	// create testing request
 	req := &events.Event{
-		Id:        bson.NewObjectId().Hex(),
 		Title:     "Test Event Title",
 		Userid:    "1",
 		Start:     start,
@@ -78,7 +77,13 @@ func (suite *EventsTestSuite) TestEventCreate() {
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), rsp.Event)
+	assert.Equal(suite.T(), req.Title, rsp.Event.Title)
+	assert.Equal(suite.T(), req.Userid, rsp.Event.Userid)
 	assert.Equal(suite.T(), req.Start, rsp.Event.Start)
+	assert.Equal(suite.T(), req.End, rsp.Event.End)
+	assert.Equal(suite.T(), req.Duration, rsp.Event.Duration)
+	assert.Equal(suite.T(), req.Recurring, rsp.Event.Recurring)
+	assert.Equal(suite.T(), req.Allday, rsp.Event.Allday)
 }
 
 func (suite *EventsTestSuite) TestRangeEvents() {
@@ -92,7 +97,7 @@ func (suite *EventsTestSuite) TestRangeEvents() {
 	r, _ := rrule.NewRRule(rrule.ROption{
 		Freq:    rrule.DAILY,
 		Count:   10,
-		Dtstart: time.Now(),
+		Dtstart: start,
 	})
 
 	req := &events.Event{
@@ -116,8 +121,9 @@ func (suite *EventsTestSuite) TestRangeEvents() {
 	endRange := startRange.AddDate(0, 0, 10)
 
 	rangeReq := &events.EventRangeRequest{
-		Start: startRange,
-		End:   endRange,
+		Userid: "1",
+		Start:  startRange,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -168,8 +174,9 @@ func (suite *EventsTestSuite) TestExRrule() {
 	// get range
 	endRange := start.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: start,
-		End:   endRange,
+		Userid: "1",
+		Start:  start,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -225,8 +232,9 @@ func (suite *EventsTestSuite) TestExDates() {
 	// get range
 	endRange := start.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: start,
-		End:   endRange,
+		Userid: "1",
+		Start:  start,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -373,8 +381,9 @@ func (suite *EventsTestSuite) TestUpdateEventSingleInstance() {
 	startRange := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
 	endRange := startRange.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: startRange,
-		End:   endRange,
+		Userid: "1",
+		Start:  startRange,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -436,8 +445,9 @@ func (suite *EventsTestSuite) TestUpdateEventFutureInstance() {
 	startRange := time.Date(2019, 12, 1, 0, 0, 0, 0, time.UTC)
 	endRange := startRange.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: startRange,
-		End:   endRange,
+		Userid: "1",
+		Start:  startRange,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -497,8 +507,9 @@ func (suite *EventsTestSuite) TestRemoveEventSingleInstance() {
 	startRange := time.Date(2019, 12, 1, 12, 0, 0, 0, time.UTC)
 	endRange := startRange.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: startRange,
-		End:   endRange,
+		Userid: "1",
+		Start:  startRange,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 
@@ -538,8 +549,9 @@ func (suite *EventsTestSuite) TestRemoveEventFutureInstace() {
 	startRange := time.Date(2019, 12, 1, 0, 0, 0, 0, time.UTC)
 	endRange := startRange.AddDate(0, 0, 7)
 	rangeReq := &events.EventRangeRequest{
-		Start: startRange,
-		End:   endRange,
+		Userid: "1",
+		Start:  startRange,
+		End:    endRange,
 	}
 	rangeRsp := &events.EventRangeResponse{}
 	err = suite.service.GetEventsRange(context.TODO(), rangeReq, rangeRsp)
@@ -648,4 +660,25 @@ func (suite *EventsTestSuite) TestRemoveEvent() {
 	err = suite.service.GetEvent(context.TODO(), &events.FincByIdRequest{Id: rsp.Event.Id}, rsp)
 	expected := errors.New("not found")
 	assert.Error(suite.T(), expected, err)
+}
+
+func (suite *EventsTestSuite) TestEventDuration() {
+	// Test start before end
+	start := time.Time{}
+	start.Add(time.Hour)
+
+	end := time.Time{}
+	end.Add(time.Hour * 2)
+
+	dur := end.Sub(start)
+	var durInt time.Duration
+
+	d, err := EventDuration(end, start)
+	expected := errors.New("Start time must be before end")
+	assert.Error(suite.T(), expected, err)
+	assert.Equal(suite.T(), durInt, d)
+
+	d, err = EventDuration(start, end)
+	assert.Equal(suite.T(), dur, d)
+	assert.Nil(suite.T(), err)
 }

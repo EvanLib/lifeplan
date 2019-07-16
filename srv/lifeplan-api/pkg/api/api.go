@@ -9,6 +9,7 @@ import (
 	apirbac "github.com/evanlib/lifeplan/srv/lifeplan-api/pkg/api/apirbac"
 	calendarservice "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/micro/go-micro"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -51,6 +52,10 @@ func NewServer(options *ApiOptions) (*Api, error) {
 	appContext := apirbac.NewAppContextMiddleware(api.enforcer)
 	api.Router = api.Http.Group("/api/v1")
 	api.Http.Use(appContext)
+
+	api.Http.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+	}))
 	//create new validator
 	validator := validator.New()
 	//register the custom validation for ISISO8601 date

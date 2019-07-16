@@ -168,6 +168,7 @@ github.com/denisenkom/go-mssqldb v0.0.0-20190328043727-2183450503ad/go.mod h1:xN
 github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3/go.mod h1:zAg7JM8CkOJ43xKXIj7eRO9kmWm/TW578qo+oDO6tuM=
 github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661/go.mod h1:dV8lFg6daOBZbT6/BDGIz6Y3WFGn8juu6G+CQ6LHtl0=
 github.com/denverdino/aliyungo v0.0.0-20190410085603-611ead8a6fed/go.mod h1:dV8lFg6daOBZbT6/BDGIz6Y3WFGn8juu6G+CQ6LHtl0=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-bitstream v0.0.0-20180413035011-3522498ce2c8/go.mod h1:VMaSuZ+SZcx/wljOQKvp5srsbCiKDEb6K2wC4+PiBmQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
@@ -206,8 +207,8 @@ github.com/envoyproxy/go-control-plane v0.6.9/go.mod h1:SBwIajubJHhxtWwsL9s8ss4s
 github.com/envoyproxy/go-control-plane v0.8.0/go.mod h1:GSSbY9P1neVhdY7G4wu+IK1rk/dqhiCC/4ExuWJZVuk=
 github.com/envoyproxy/protoc-gen-validate v0.0.14/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/estesp/manifest-tool v0.9.0/go.mod h1:w/oandYlJC/m8nkP8UaJVxsm/LwjurJQHXR27njws74=
-github.com/evanlib/lifeplan/srv/lifeplan-calendar v0.0.0-20190527014650-4419e6a97bd7 h1:nEhnH9XrDwtZsi8ILraQYwCrmTekrRNIfbfAMNV+LLM=
-github.com/evanlib/lifeplan/srv/lifeplan-calendar v0.0.0-20190527014650-4419e6a97bd7/go.mod h1:sFYah3UTEqpC/+FzglHNVMtYT/z0n9656kqX5F19ZyM=
+github.com/evanlib/lifeplan/srv/lifeplan-calendar v0.0.0-20190527134051-187cd54f9665 h1:BD/kf9XlMK4VVwhoqLI7/zBg4E4Lr2X2C/X/ZNLXJNg=
+github.com/evanlib/lifeplan/srv/lifeplan-calendar v0.0.0-20190527134051-187cd54f9665/go.mod h1:sFYah3UTEqpC/+FzglHNVMtYT/z0n9656kqX5F19ZyM=
 github.com/evanphx/json-patch v0.0.0-20190203023257-5858425f7550/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.1.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
-	"time"
 
 	"io/ioutil"
 
@@ -34,6 +34,7 @@ func (r *EventsRouter) GetOwner(ctx apirbac.AppContext) (string, error) {
 func GetUserID() string {
 	return "1"
 }
+
 func (cb *EventJsonBinder) Bind(i interface{}, ctx echo.Context) (err error) {
 	var buf []byte
 
@@ -112,6 +113,8 @@ func (r *EventsRouter) InitRoutes(route *echo.Group) {
 
 	eventsGroup := apirbac.Group(route, "/events", r, []string{"eventID", EventType, CalendarDomain})
 	eventsGroup.GET("/:eventID", r.Get, nil)
+	eventsGroup.PUT("/:eventID", r.UpdateEvent, nil)
+	eventsGroup.POST("/:eventID", r.DeleteEvent, nil)
 }
 
 func (r *EventsRouter) Get(ctx echo.Context) error {
@@ -134,23 +137,19 @@ func (r *EventsRouter) Get(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK, rsp.Event)
 }
 
 func (r *EventsRouter) GetEvents(ctx echo.Context) error {
 
-	req := &calendar.EventRangeRequest{
-		Userid: "1",
-		Start:  time.Time{},
-		End:    time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
-	}
-
-	rsp, err := r.Calendarservice.GetEventsRange(context.TODO(), req)
+	rsp, err := r.Calendarservice.GetEventsByUserID(context.TODO(), &calendar.FincByIdRequest{
+		Id: GetUserID(),
+	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK, rsp.Events)
 }
 
 func (r *EventsRouter) CreateEvent(ctx echo.Context) error {
@@ -166,6 +165,57 @@ func (r *EventsRouter) CreateEvent(ctx echo.Context) error {
 	}
 
 	rsp, err := r.Calendarservice.CreateEvent(context.TODO(), req)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, rsp.Event)
+}
+
+func (r *EventsRouter) UpdateEvent(ctx echo.Context) error {
+	// double id checks....
+	id := ctx.Param("eventID")
+	if id == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
+	}
+
+	req := &calendar.EventUpdateRequest{}
+	err := (&EventUpdateJsonBinder{}).Bind(req, ctx)
+	if err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
+	}
+
+	if err := ctx.Validate(req); err != nil {
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
+	}
+
+	rsp, err := r.Calendarservice.UpdateEvent(context.TODO(), req)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, rsp.Event)
+}
+
+func (r *EventsRouter) DeleteEvent(ctx echo.Context) error {
+	// double id checks....
+	id := ctx.Param("eventID")
+	if id == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
+	}
+
+	req := &calendar.EventUpdateRequest{}
+	err := (&EventUpdateJsonBinder{}).Bind(req, ctx)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, errorQueryParamsIncorrect)
+	}
+
+	if err := ctx.Validate(req); err != nil {
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
+	}
+
+	rsp, err := r.Calendarservice.RemoveEvent(context.TODO(), req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

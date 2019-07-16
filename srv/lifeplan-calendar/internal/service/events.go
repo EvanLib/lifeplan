@@ -3,19 +3,23 @@ package service
 import (
 	"context"
 	"time"
+
+	"errors"
+
 	events "github.com/evanlib/lifeplan/srv/lifeplan-calendar/proto"
 	"github.com/globalsign/mgo/bson"
 	rrule "github.com/teambition/rrule-go"
-	"log"
 )
 
 // CreateEvent Inserts new event into data store from given request event.
 func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, rsp *events.EventResponse) error {
 	// TODO: grabs the id from context..
 	// duration
-	duration := req.End.Sub(req.Start)
+	duration, err := EventDuration(req.Start, req.End)
+	if err != nil {
+		return err
+	}
 
-	
 	// You must be able to distinguish between the recurrence pattern end date
 	// and the end date of each event instance to enable practical querying
 	if req.Recurring {
@@ -23,6 +27,11 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		r, err := rrule.StrToRRule(req.Rrule)
 		if err != nil {
 			return err
+		}
+
+		//Dtstart must be the same.
+		if !r.Options.Dtstart.Equal(req.Start) {
+			return errors.New("dtstart and start must be the same.")
 		}
 		dates := r.All()
 		req.End = dates[len(r.All())-1].Add(duration)
@@ -41,7 +50,7 @@ func (ev *CalendarService) CreateEvent(ctx context.Context, req *events.Event, r
 		Exrule:    req.Exrule,
 		Exdates:   req.Exdates,
 	}
-	err := ev.db.Collection(CollectionEvents).Insert(event)
+	err = ev.db.Collection(CollectionEvents).Insert(event)
 	if err != nil {
 		return err
 	}
@@ -62,7 +71,7 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 		return err
 	}
 
-	// update duration(Should this be called everytime?)
+	// update duration(Should this be called everytime?
 	duration := req.Event.End.Sub(req.Event.Start)
 	req.Event.Duration = duration
 
@@ -93,20 +102,25 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 		}
 		break
 	case events.FutureInstance:
-		if event.Recurring && event.Rrule != "" {
+		if event.Recurring && event.Rrule != "" && event.Start.Before(req.Event.Start) {
 			// find last occurance up to today().
 			r, err := rrule.StrToRRule(event.Rrule)
 			if err != nil {
 				return err
 			}
 			rangedEvents := r.Between(event.Start, req.Event.Start, true)
-			// TODO: fix this workaround...
-			if len(rangedEvents) < 2 {
-				req.Updatetype = events.AllInstances
-				ev.UpdateEvent(ctx, req, rsp)
+			if len(rangedEvents) == 0 {
+				return errors.New("no events returned")
 			}
+
+			if len(rangedEvents) == 1 {
+				req.Updatetype = events.SingleInstance
+				return ev.UpdateEvent(ctx, req, rsp)
+			}
+
 			lastOccurnace := rangedEvents[len(rangedEvents)-2]
 			r.OrigOptions.Until = lastOccurnace.Add(event.Duration)
+
 			event.End = lastOccurnace.Add(event.Duration)
 			event.Rrule = r.String()
 			// set old event end to last occurance
@@ -120,6 +134,9 @@ func (ev *CalendarService) UpdateEvent(ctx context.Context, req *events.EventUpd
 
 		break
 	default:
+		//userid
+		req.Event.Userid = event.Userid
+
 		// non recurring events
 		err = ev.db.Collection(CollectionEvents).UpdateId(req.Event.Id, req.Event)
 		if err != nil {
@@ -148,8 +165,8 @@ func (ev *CalendarService) GetEvent(ctx context.Context, req *events.FincByIdReq
 	return nil
 }
 
-// RemoveEvent deletes an event in data store based on event request.
-// There are three possibilities when it comes to deleting.
+// RemoveEvent deletes an event in data store based on event request
+// There are three possibilities when it comes to deleting events
 // Removing all instances of an event
 // Removing only future event instances while keeping past instances.
 // Removing only a single selected instance.
@@ -165,6 +182,7 @@ func (ev *CalendarService) RemoveEvent(ctx context.Context, req *events.EventUpd
 		// add exception date to recurring event
 		exception := time.Date(req.Event.Start.Year(), req.Event.Start.Month(), req.Event.Start.Day(), event.Start.Hour(), event.Start.Minute(), event.Start.Second(), 0, time.UTC)
 		event.Exdates = append(event.Exdates, exception)
+
 		err = ev.db.Collection(CollectionEvents).UpdateId(event.Id, event)
 		if err != nil {
 			return err
@@ -233,7 +251,6 @@ func (ev *CalendarService) GetEventsRange(ctx context.Context, req *events.Event
 		},
 		"userid": req.Userid,
 	}
-	log.Println(query)
 	err := ev.db.Collection(CollectionEvents).Find(query).All(&responseevents)
 	if err != nil {
 		return err
@@ -290,5 +307,20 @@ func (ev *CalendarService) GetEventsByUserID(ctx context.Context, req *events.Fi
 		Start:  time.Time{},
 		End:    time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
-	return ev.GetEventsRange(ctx, rangereq, rsp) 
+	return ev.GetEventsRange(ctx, rangereq, rsp)
+}
+
+// EventDuration returns a time duration of the event within 24 hours.
+func EventDuration(start time.Time, end time.Time) (time.Duration, error) {
+	var dur time.Duration
+	if start.After(end) {
+		return dur, errors.New("start time must be before end time")
+	}
+
+	// Zero value of time
+	s := time.Date(1, 1, 1, start.Hour(), start.Minute(), start.Second(), start.Nanosecond(), time.UTC)
+	e := time.Date(1, 1, 1, end.Hour(), end.Minute(), end.Second(), end.Nanosecond(), time.UTC)
+	dur = e.Sub(s)
+
+	return dur, nil
 }
